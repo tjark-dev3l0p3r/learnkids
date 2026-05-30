@@ -1369,10 +1369,18 @@ function renderImgCh(ex,el){
   }
   const grid=document.createElement('div');
   grid.className='img-grid';
-  (ex.ch||[]).forEach(c=>{
+  const choices=ex.ch||[];
+  // Emojis nur zeigen wenn sie sich unterscheiden (z.B. Familienmitglieder, Tiere, Farben)
+  // Wenn alle das gleiche Emoji haben (📝📊📖 etc.) → nur Text zeigen
+  const emojis=choices.map(c=>c.e||'');
+  const allSame=emojis.every(e=>e===emojis[0]);
+  const showEmoji=!allSame&&emojis.some(e=>e&&e!=='📝'&&e!=='📊'&&e!=='📖'&&e!=='📐'&&e!=='📏'&&e!=='⏰'&&e!=='⏳'&&e!=='💬'&&e!=='🔬'&&e!=='⏪');
+  choices.forEach(c=>{
     const d=document.createElement('div');
     d.className='img-ch';
-    d.innerHTML=`<div class="lb" style="font-size:1.15rem;font-weight:800;padding:8px 0">${c.l}</div>`;
+    d.innerHTML=showEmoji
+      ?`<div class="ic">${c.e||''}</div><div class="lb">${c.l}</div>`
+      :`<div class="lb" style="font-size:1.15rem;font-weight:800;padding:10px 0">${c.l}</div>`;
     d.onclick=()=>check(c.l,ex.ok,d,grid,'.img-ch');
     grid.appendChild(d);
   });
@@ -1686,23 +1694,24 @@ async function check(ans,ok,el,grid,sel){
     grid.querySelectorAll(sel).forEach(b=>{
       if(b.textContent.trim()===ok||b.querySelector('.lb')?.textContent===ok)b.classList.add('ok');
     });
-    // Lumio-Bubble auf "denkt nach..." setzen
     const qEl=document.getElementById('lumio-q');
     const origQ=qEl.textContent;
-    qEl.textContent=eng?'Lumio is thinking...':'Lumio denkt nach...';
-    // Richtige Antwort sofort vorlesen
-    sayThen(clean(ok),async()=>{
-      // Dann AI-Erklärung holen
-      const explanation=await getAIExplanation(origQ,ok,ans,eng);
-      qEl.textContent=explanation||origQ; // Erklärung in Lumio-Bubble zeigen
-      if(explanation){
-        sayThen(explanation,next);
-      }else{
-        // Fallback wenn AI nicht antwortet
-        const fallback=eng?`Not quite! The answer is ${ok}. You can do it!`:`Noch nicht ganz! Die Antwort ist ${ok}. Du schaffst das!`;
-        sayThen(fallback,next);
-      }
-    });
+    qEl.textContent=eng?'🦉 Lumio is thinking...':'🦉 Lumio denkt nach...';
+
+    // AI-Fetch SOFORT starten (parallel zum TTS)
+    const aiPromise=getAIExplanation(origQ,ok,ans,eng);
+
+    // Richtige Antwort vorlesen
+    say(clean(ok),0.85);
+
+    // Nach 2.5s (TTS fertig) — AI-Antwort verarbeiten
+    setTimeout(async()=>{
+      let explanation=null;
+      try{explanation=await aiPromise;}catch{}
+      const text=explanation||(eng?`Not quite! The answer is ${ok}. Keep going!`:`Fast! Die richtige Antwort ist ${ok}. Weiter so!`);
+      qEl.textContent=text;
+      sayThen(text,next);
+    },2500);
   }
 }
 
