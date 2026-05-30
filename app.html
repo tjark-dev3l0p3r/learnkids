@@ -110,17 +110,26 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 @keyframes fb-bounce{0%{transform:scale(0) rotate(-10deg)}60%{transform:scale(1.25) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
 @keyframes fb-slide{0%{transform:translateY(20px);opacity:0}100%{transform:translateY(0);opacity:1}}
 
-/* CONFETTI */
-.conf{position:fixed;pointer-events:none;z-index:200;top:0;left:0;width:100%;height:100%;overflow:hidden}
-.conf-p{position:absolute;width:10px;height:10px;border-radius:2px;animation:conf-fall var(--d) ease-in var(--delay) forwards}
-@keyframes conf-fall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+/* MASCOT CELEBRATION — Duolingo-Style */
+.mascot-wrap{position:fixed;bottom:-260px;left:50%;transform:translateX(-50%);z-index:997;text-align:center;pointer-events:none;transition:none}
+.mascot-emoji{font-size:5rem;display:block;animation:mascot-dance 0.5s ease-in-out infinite alternate}
+.mascot-bubble{background:#fff;border-radius:20px;padding:10px 20px;margin-bottom:10px;font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:#2d5a27;box-shadow:0 6px 20px rgba(0,0,0,.25);white-space:nowrap;position:relative}
+.mascot-bubble::after{content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);border:10px solid transparent;border-top-color:#fff;border-bottom:none}
+@keyframes mascot-dance{0%{transform:rotate(-15deg) scale(1.1)}100%{transform:rotate(15deg) scale(1.2)}}
+
+/* SCREEN FLASH */
+.flash{position:fixed;inset:0;z-index:996;pointer-events:none;opacity:0;animation:flash-ok .4s ease forwards}
+@keyframes flash-ok{0%{opacity:.45}100%{opacity:0}}
+
+/* COMBO BURST */
+.combo-pop{position:fixed;top:30%;left:50%;transform:translateX(-50%);z-index:998;font-family:'Baloo 2',cursive;font-size:2.5rem;font-weight:900;color:#fbbf24;text-shadow:0 0 20px rgba(251,191,36,.8),0 4px 12px rgba(0,0,0,.4);pointer-events:none;animation:combo-anim .7s ease forwards}
+@keyframes combo-anim{0%{transform:translateX(-50%) scale(0) rotate(-10deg);opacity:1}50%{transform:translateX(-50%) scale(1.3) rotate(5deg);opacity:1}80%{transform:translateX(-50%) scale(1) rotate(0);opacity:1}100%{transform:translateX(-50%) scale(1.1) rotate(0);opacity:0}}
 
 /* STAR BURST */
-.star-burst{position:fixed;pointer-events:none;z-index:150;font-size:1.8rem;animation:star-fly var(--d) ease-out forwards}
-@keyframes star-fly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+@keyframes shake-no{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(12px)}60%{transform:translateX(-9px)}80%{transform:translateX(9px)}}
 
 /* WRONG SHAKE */
-@keyframes shake-no{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
+@keyframes pop{0%{transform:scale(0)}80%{transform:scale(1.15)}100%{transform:scale(1)}}
 
 /* RESULT */
 #s-res{background:linear-gradient(135deg,#1a3a16,#4a8c3f);align-items:center;justify-content:center;padding:28px 20px;text-align:center}
@@ -722,8 +731,494 @@ function mkEngFood(rounds=10){
 // ═══════════════════════════════════════════
 // TOPICS DATABASE  — 400+ exercises/subject
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// KLASSE 3 & 4 — ECHTE LEHRPLAN-INHALTE
+// ═══════════════════════════════════════════
+
+// Klasse 3: Einmaleins komplett
+function mkMultAll(rounds=10){
+  const exs=[];
+  for(let i=0;i<rounds;i++){
+    const a=rnd(2,10),b=rnd(2,10),prod=a*b;
+    const ans=wrongNums(prod,Math.max(1,prod-a*2),prod+a*2);
+    exs.push({type:'count',q:`${a} × ${b} = ?`,obj:prod<=25?Array(prod).fill('⭐'):[],ans,ok:prod});
+  }
+  return exs;
+}
+
+// Klasse 3: Division mit Rest
+function mkDivRest(rounds=10){
+  const data=[[17,5,'3 R 2'],[13,4,'3 R 1'],[25,7,'3 R 4'],[19,3,'6 R 1'],[23,6,'3 R 5'],[15,4,'3 R 3'],[29,8,'3 R 5'],[21,5,'4 R 1'],[31,7,'4 R 3'],[27,4,'6 R 3'],[33,9,'3 R 6'],[35,6,'5 R 5']];
+  return shuffle(data).slice(0,rounds).map(([a,b,ok])=>{
+    const wrong=[`${Math.floor(a/b)-1} R ${a%(Math.floor(a/b)-1)||1}`,`${Math.floor(a/b)+1} R 0`,`${Math.floor(a/b)} R ${(a%b+2)%b||1}`].slice(0,3);
+    return{type:'imgch',q:`${a} : ${b} = ?`,main:'➗',ch:shuffle([{e:'📊',l:ok},...wrong.map(w=>({e:'📊',l:w}))]),ok};
+  });
+}
+
+// Klasse 3: 3D-Körper
+function mk3DForms(){
+  const forms=[
+    {e:'🎲',n:'Würfel',q:'Wie viele Ecken hat ein Würfel?',ok:'8',w:['4','6','12']},
+    {e:'📦',n:'Quader',q:'Wie viele Flächen hat ein Quader?',ok:'6',w:['4','8','12']},
+    {e:'⚽',n:'Kugel',q:'Welcher Körper hat keine Ecken?',ok:'Kugel',w:['Würfel','Pyramide','Quader']},
+    {e:'🔺',n:'Pyramide',q:'Wie viele Ecken hat eine Pyramide?',ok:'5',w:['4','6','8']},
+    {e:'🥫',n:'Zylinder',q:'Welcher Körper hat zwei runde Flächen?',ok:'Zylinder',w:['Kugel','Quader','Pyramide']},
+  ];
+  return forms.map(f=>({type:'imgch',q:f.q,main:f.e,
+    ch:shuffle([{e:f.e,l:f.ok},...f.w.map(w=>({e:'❓',l:w}))]),ok:f.ok}));
+}
+
+// Klasse 3: 3-stellige Zahlen
+function mk3Digit(rounds=10){
+  const exs=[];
+  for(let i=0;i<rounds;i++){
+    const a=rnd(100,500),b=rnd(50,300),sum=a+b;
+    const ans=wrongNums(sum,sum-50,sum+50).slice(0,4);
+    exs.push({type:'imgch',q:`${a} + ${b} = ?`,main:'🔢',
+      ch:shuffle([{e:'📊',l:String(sum)},...ans.filter(x=>x!==sum).slice(0,3).map(x=>({e:'📊',l:String(x)}))]),ok:String(sum)});
+  }
+  return exs;
+}
+
+// Klasse 4: Große Zahlen
+function mkBigNum(rounds=10){
+  const exs=[];
+  for(let i=0;i<rounds;i++){
+    const a=rnd(1000,5000),b=rnd(100,2000),sum=a+b;
+    const wrong=[sum-rnd(10,200),sum+rnd(10,200),sum-rnd(50,500)].filter(x=>x>0&&x!==sum);
+    exs.push({type:'imgch',q:`${a.toLocaleString('de')} + ${b.toLocaleString('de')} = ?`,main:'🔢',
+      ch:shuffle([{e:'📊',l:sum.toLocaleString('de')},...wrong.slice(0,3).map(x=>({e:'📊',l:x.toLocaleString('de')}))]),ok:sum.toLocaleString('de')});
+  }
+  return exs;
+}
+
+// Klasse 4: Schriftliche Multiplikation
+function mkMultBig(rounds=10){
+  const pairs=[[234,3,702],[125,4,500],[312,5,1560],[213,6,1278],[145,7,1015],[231,8,1848],[176,9,1584],[324,6,1944],[213,7,1491],[162,8,1296],[234,4,936],[315,6,1890]];
+  return shuffle(pairs).slice(0,rounds).map(([a,b,ok])=>{
+    const wrong=[ok-rnd(5,50),ok+rnd(5,50),ok-rnd(10,100)].filter(x=>x>0&&x!==ok);
+    return{type:'imgch',q:`${a} × ${b} = ?`,main:'✖️',
+      ch:shuffle([{e:'📊',l:String(ok)},...wrong.slice(0,3).map(x=>({e:'📊',l:String(x)}))]),ok:String(ok)};
+  });
+}
+
+// Klasse 4: Division
+function mkDivBig(rounds=10){
+  const pairs=[[846,3,282],[750,5,150],[936,4,234],[672,6,112],[945,9,105],[784,7,112],[648,8,81],[810,5,162],[756,9,84],[864,6,144]];
+  return shuffle(pairs).slice(0,rounds).map(([a,b,ok])=>{
+    const wrong=[ok-rnd(2,20),ok+rnd(2,20),ok-rnd(5,30)].filter(x=>x>0&&x!==ok);
+    return{type:'imgch',q:`${a} : ${b} = ?`,main:'➗',
+      ch:shuffle([{e:'📊',l:String(ok)},...wrong.slice(0,3).map(x=>({e:'📊',l:String(x)}))]),ok:String(ok)};
+  });
+}
+
+// Klasse 4: Brüche
+function mkBrueche(rounds=10){
+  const data=[
+    {q:'Was ist die Hälfte von 80?',ok:'40',w:['30','45','35']},
+    {q:'Wie viele Viertel ergibt ein Ganzes?',ok:'4',w:['2','3','8']},
+    {q:'Sara isst 3/8 Pizza. Was ist übrig?',ok:'5/8',w:['3/8','4/8','6/8']},
+    {q:'Welcher Bruch ist am größten?',ok:'1/2',w:['1/4','1/8','1/3']},
+    {q:'Was ist 1/4 von 100?',ok:'25',w:['20','30','50']},
+    {q:'Was ist 1/3 von 90?',ok:'30',w:['20','45','60']},
+    {q:'3/4 von 40 ist...?',ok:'30',w:['20','10','25']},
+    {q:'Wie viele Achtel sind ein Halbes?',ok:'4',w:['2','3','8']},
+    {q:'Was ist 3/4 von 80?',ok:'60',w:['40','50','70']},
+    {q:'Was ist 1/2 von 150?',ok:'75',w:['50','100','80']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'🍕',
+    ch:shuffle([{e:'📊',l:d.ok},...d.w.map(x=>({e:'📊',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 4: Fläche & Umfang
+function mkGeom(rounds=8){
+  const data=[
+    {q:'Rechteck 5×3cm — Umfang?',ok:'16 cm',w:['15 cm','18 cm','12 cm']},
+    {q:'Rechteck 5×3cm — Fläche?',ok:'15 cm²',w:['12 cm²','16 cm²','18 cm²']},
+    {q:'Quadrat Seite 4cm — Umfang?',ok:'16 cm',w:['8 cm','12 cm','20 cm']},
+    {q:'Quadrat Seite 6cm — Fläche?',ok:'36 cm²',w:['24 cm²','30 cm²','42 cm²']},
+    {q:'Rechteck 8×4cm — Fläche?',ok:'32 cm²',w:['24 cm²','28 cm²','40 cm²']},
+    {q:'Rechteck 7×2cm — Umfang?',ok:'18 cm',w:['14 cm','16 cm','20 cm']},
+    {q:'Quadrat Seite 5cm — Fläche?',ok:'25 cm²',w:['20 cm²','30 cm²','15 cm²']},
+    {q:'Rechteck 10×3cm — Umfang?',ok:'26 cm',w:['30 cm','20 cm','13 cm']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'📐',
+    ch:shuffle([{e:'📐',l:d.ok},...d.w.map(x=>({e:'📐',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 4: Maßeinheiten
+function mkEinheiten(rounds=10){
+  const data=[
+    {q:'Wie viele cm sind 2 m?',ok:'200 cm',w:['20 cm','2000 cm','120 cm']},
+    {q:'Wie viele Minuten hat 1 Stunde?',ok:'60',w:['30','100','120']},
+    {q:'Wie viele g sind 1,5 kg?',ok:'1500 g',w:['150 g','500 g','15000 g']},
+    {q:'Wie viele mm sind 1 cm?',ok:'10 mm',w:['100 mm','1 mm','1000 mm']},
+    {q:'Wie viele m sind 1 km?',ok:'1000 m',w:['100 m','10 m','10000 m']},
+    {q:'Wie viele ml sind 1 Liter?',ok:'1000 ml',w:['100 ml','500 ml','10 ml']},
+    {q:'Wie viele Sekunden hat 1 Minute?',ok:'60',w:['100','30','120']},
+    {q:'3 km sind wie viele m?',ok:'3000 m',w:['300 m','30 m','30000 m']},
+    {q:'500 cm sind wie viele m?',ok:'5 m',w:['50 m','0,5 m','500 m']},
+    {q:'2 kg sind wie viele g?',ok:'2000 g',w:['200 g','20 g','20000 g']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'📏',
+    ch:shuffle([{e:'📏',l:d.ok},...d.w.map(x=>({e:'📏',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 3-4: Wortarten
+function mkWortarten(rounds=10){
+  const data=[
+    {q:'Welches Wort ist ein Nomen?',ok:'Hund',w:['laufen','schnell','über']},
+    {q:'Welches Wort ist ein Verb?',ok:'spielen',w:['groß','Katze','der']},
+    {q:'Welches Wort ist ein Adjektiv?',ok:'schön',w:['springen','Baum','ein']},
+    {q:'Was ist "rennen"?',ok:'Verb',w:['Nomen','Adjektiv','Artikel']},
+    {q:'Was ist "Schule"?',ok:'Nomen',w:['Verb','Adjektiv','Pronomen']},
+    {q:'Was ist "groß"?',ok:'Adjektiv',w:['Verb','Nomen','Artikel']},
+    {q:'Was ist "und"?',ok:'Konjunktion',w:['Nomen','Verb','Adjektiv']},
+    {q:'Was ist "er"?',ok:'Pronomen',w:['Nomen','Artikel','Verb']},
+    {q:'Was ist "der"?',ok:'Artikel',w:['Nomen','Pronomen','Verb']},
+    {q:'Welches Wort ist ein Verb?',ok:'essen',w:['Apfel','rund','ein']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'📝',
+    ch:shuffle([{e:'📝',l:d.ok},...d.w.map(x=>({e:'📝',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 3: Plural
+function mkPlural(rounds=10){
+  const data=[
+    {q:'Plural von "der Baum"?',ok:'die Bäume',w:['die Baums','die Baumen','die Baum']},
+    {q:'Plural von "das Buch"?',ok:'die Bücher',w:['die Buchs','die Buche','die Büchs']},
+    {q:'Plural von "die Hand"?',ok:'die Hände',w:['die Hands','die Handen','die Handte']},
+    {q:'Plural von "das Kind"?',ok:'die Kinder',w:['die Kinds','die Kindes','die Kindere']},
+    {q:'Plural von "der Hund"?',ok:'die Hunde',w:['die Hunds','die Hunden','die Hündе']},
+    {q:'Plural von "das Haus"?',ok:'die Häuser',w:['die Hauses','die Hausе','die Hauser']},
+    {q:'Plural von "die Maus"?',ok:'die Mäuse',w:['die Mausen','die Maus','die Mauses']},
+    {q:'Plural von "der Vogel"?',ok:'die Vögel',w:['die Vogels','die Vogeln','die Vogelе']},
+    {q:'Plural von "das Glas"?',ok:'die Gläser',w:['die Glasen','die Gläse','die Glass']},
+    {q:'Plural von "die Frau"?',ok:'die Frauen',w:['die Fraues','die Frau','die Frauns']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'📚',
+    ch:shuffle([{e:'📚',l:d.ok},...d.w.map(x=>({e:'📚',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 3: Zeitformen
+function mkZeitformen3(rounds=10){
+  const data=[
+    {q:'"Ich spiele" — welche Zeitform?',ok:'Präsens',w:['Präteritum','Perfekt','Futur']},
+    {q:'Präteritum von "spielen"?',ok:'spielte',w:['spiele','gespielet','spielen']},
+    {q:'Perfekt von "laufen"?',ok:'ist gelaufen',w:['lief','geläufen','laufte']},
+    {q:'"Er lief" — welche Zeitform?',ok:'Präteritum',w:['Präsens','Perfekt','Futur']},
+    {q:'Präteritum von "haben"?',ok:'hatte',w:['habe','gehabt','haben']},
+    {q:'Perfekt von "schreiben"?',ok:'hat geschrieben',w:['schrieb','schreibte','schreiben']},
+    {q:'"Sie hat gegessen" — welche Zeitform?',ok:'Perfekt',w:['Präsens','Präteritum','Futur']},
+    {q:'Präteritum von "sein"?',ok:'war',w:['ist','gewesen','wurden']},
+    {q:'Präsens von "gehen"?',ok:'geht',w:['ging','gegangen','gehen']},
+    {q:'Präteritum von "kommen"?',ok:'kam',w:['kommt','gekommen','komme']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'⏰',
+    ch:shuffle([{e:'⏰',l:d.ok},...d.w.map(x=>({e:'⏰',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 4: Satzglieder
+function mkSatzglieder(rounds=10){
+  const data=[
+    {q:'"Der Hund beißt den Mann." — Was ist das Subjekt?',ok:'Der Hund',w:['beißt','den Mann','den']},
+    {q:'"Das Mädchen liest ein Buch." — Was ist das Prädikat?',ok:'liest',w:['Das Mädchen','ein Buch','Das']},
+    {q:'"Tina kauft eine Brezel." — Was ist das Objekt?',ok:'eine Brezel',w:['Tina','kauft','eine']},
+    {q:'Was fragt nach dem Subjekt?',ok:'Wer oder was?',w:['Wen oder was?','Wem?','Wie?']},
+    {q:'Was fragt nach dem Akkusativobjekt?',ok:'Wen oder was?',w:['Wer oder was?','Wem?','Womit?']},
+    {q:'"Tim schreibt einen Brief." — Subjekt?',ok:'Tim',w:['schreibt','einen Brief','Brief']},
+    {q:'"Die Katze schläft auf dem Sofa." — Prädikat?',ok:'schläft',w:['Die Katze','auf dem Sofa','dem']},
+    {q:'Das Prädikat im Satz ist immer das...?',ok:'Verb',w:['Nomen','Adjektiv','Pronomen']},
+    {q:'"Anna gibt Max einen Apfel." — Was ist "Max"?',ok:'Dativobjekt',w:['Subjekt','Akkusativobjekt','Prädikat']},
+    {q:'"Max isst den Apfel." — Was ist "den Apfel"?',ok:'Akkusativobjekt',w:['Subjekt','Dativobjekt','Prädikat']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'📖',
+    ch:shuffle([{e:'📖',l:d.ok},...d.w.map(x=>({e:'📖',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 4: Kasus
+function mkKasus(rounds=10){
+  const data=[
+    {q:'"Dem Lehrer" steht in welchem Fall?',ok:'Dativ',w:['Nominativ','Akkusativ','Genitiv']},
+    {q:'"Den Ball" steht in welchem Fall?',ok:'Akkusativ',w:['Nominativ','Dativ','Genitiv']},
+    {q:'"Der Hund" steht in welchem Fall?',ok:'Nominativ',w:['Akkusativ','Dativ','Genitiv']},
+    {q:'Wer/Was fragt nach welchem Fall?',ok:'Nominativ',w:['Akkusativ','Dativ','Genitiv']},
+    {q:'Wen/Was fragt nach welchem Fall?',ok:'Akkusativ',w:['Nominativ','Dativ','Genitiv']},
+    {q:'Wem fragt nach welchem Fall?',ok:'Dativ',w:['Nominativ','Akkusativ','Genitiv']},
+    {q:'"Des Hundes" steht in welchem Fall?',ok:'Genitiv',w:['Nominativ','Akkusativ','Dativ']},
+    {q:'"Ich gebe dem Kind" — "dem Kind" ist im...?',ok:'Dativ',w:['Akkusativ','Nominativ','Genitiv']},
+    {q:'"Er sieht den Mann" — "den Mann" ist im...?',ok:'Akkusativ',w:['Nominativ','Dativ','Genitiv']},
+    {q:'Im Nominativ steht das...?',ok:'Subjekt',w:['Objekt','Prädikat','Adverb']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'📝',
+    ch:shuffle([{e:'📝',l:d.ok},...d.w.map(x=>({e:'📝',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 4: Alle Zeitformen
+function mkZeitformen4(rounds=10){
+  const data=[
+    {q:'"Ich werde kommen" — welche Zeitform?',ok:'Futur',w:['Präsens','Präteritum','Perfekt']},
+    {q:'"Ich habe gegessen" — welche Zeitform?',ok:'Perfekt',w:['Präsens','Präteritum','Futur']},
+    {q:'"Er lief" — welche Zeitform?',ok:'Präteritum',w:['Präsens','Perfekt','Futur']},
+    {q:'"Sie läuft" — welche Zeitform?',ok:'Präsens',w:['Präteritum','Perfekt','Futur']},
+    {q:'Futur von "gehen"?',ok:'wird gehen',w:['ging','ist gegangen','geht']},
+    {q:'Plusquamperfekt: "Er hatte geschlafen" — das ist...?',ok:'Vorvergangenheit',w:['Präsens','Futur','Präteritum']},
+    {q:'Welche Zeitform: "Wir hatten gespielt"?',ok:'Plusquamperfekt',w:['Perfekt','Präteritum','Futur']},
+    {q:'Perfekt von "fahren"?',ok:'ist gefahren',w:['fuhr','gefahrt','fahren']},
+    {q:'"Ihr werdet lernen" ist welche Zeitform?',ok:'Futur',w:['Präsens','Perfekt','Präteritum']},
+    {q:'Präteritum von "schreiben"?',ok:'schrieb',w:['geschrieben','schreibte','schreiben']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'⏳',
+    ch:shuffle([{e:'⏳',l:d.ok},...d.w.map(x=>({e:'⏳',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 4: Direkte Rede
+function mkDirRede(rounds=8){
+  const data=[
+    {q:'Welche Satzzeichen stehen um ein Zitat?',ok:'" "',w:['( )','* *','< >']},
+    {q:'Welcher Satz ist korrekt?',ok:'Lisa sagt: "Komm her!"',w:['"Lisa sagt komm her"','Lisa sagt, komm her!','Lisa sagt: komm her.']},
+    {q:'Nach dem Anführungszeichen (Schluss) folgt beim Begleitsatz...?',ok:'Komma',w:['Punkt','Ausrufezeichen','Nichts']},
+    {q:'Wer spricht wird im...genannt?',ok:'Redebegleitsatz',w:['Subjekt','Prädikat','Hauptsatz']},
+    {q:'"Ich komme!", rief Max. — Was ist "rief Max"?',ok:'Redebegleitsatz',w:['Direktes Zitat','Subjekt','Nebensatz']},
+    {q:'Großschreibung im Zitat — wann?',ok:'Immer am Anfang',w:['Nie','Nur bei Nomen','Am Ende']},
+    {q:'Tim fragte: "___ kommst du?" Was kommt in die Lücke?',ok:'Wann',w:['wann','Dass','ob']},
+    {q:'Das Ausrufezeichen im Zitat steht...?',ok:'Vor dem schließenden "',w:['Danach','Am Ende des Satzes','Nie']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'💬',
+    ch:shuffle([{e:'💬',l:d.ok},...d.w.map(x=>({e:'💬',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 3-4 Sachkunde: Körper und Gesundheit
+function mkKoerperGesund(rounds=10){
+  const data=[
+    {q:'Wie viele Knochen hat ein Mensch (ca.)?',ok:'200',w:['50','100','400']},
+    {q:'Welches Organ pumpt das Blut?',ok:'Herz',w:['Lunge','Niere','Leber']},
+    {q:'Was macht die Lunge?',ok:'Luft aufnehmen',w:['Blut reinigen','Essen verdauen','Bewegung steuern']},
+    {q:'Wie viele Gläser Wasser braucht ein Kind täglich?',ok:'6-8',w:['1-2','10-12','3-4']},
+    {q:'Was ist gesund?',ok:'Obst',w:['Chips','Cola','Gummibären']},
+    {q:'Wie viele Zähne hat ein Erwachsener (mit Weisheitszähnen)?',ok:'32',w:['20','28','36']},
+    {q:'Was schützt das Gehirn?',ok:'Schädel',w:['Rippen','Wirbelsäule','Schlüsselbein']},
+    {q:'Welches Organ reinigt das Blut?',ok:'Niere',w:['Lunge','Magen','Herz']},
+    {q:'Wie viele Monate schläft ein Bär im Winterschlaf?',ok:'5-6 Monate',w:['1-2 Monate','3 Wochen','1 Jahr']},
+    {q:'Was hilft beim Lernen besonders?',ok:'Genug Schlaf',w:['Viele Videos','Kein Frühstück','Lange sitzen']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'🧠',
+    ch:shuffle([{e:'🔬',l:d.ok},...d.w.map(x=>({e:'🔬',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 3-4 Sachkunde: Magnetismus & Physik
+function mkPhysik(rounds=10){
+  const data=[
+    {q:'Was zieht ein Magnet an?',ok:'Eisen',w:['Plastik','Holz','Glas']},
+    {q:'Gleiche Pole zweier Magnete...',ok:'stoßen sich ab',w:['ziehen sich an','bleiben neutral','drehen sich']},
+    {q:'Welches ist magnetisch?',ok:'Büroklammer',w:['Radiergummi','Bleistift','Lineal aus Plastik']},
+    {q:'Was bedeutet die rote Ampel?',ok:'Stehen bleiben',w:['Fahren','Vorsicht','Langsam']},
+    {q:'Auf welcher Seite fahren Radfahrer?',ok:'Rechts',w:['Links','Mitte','Überall']},
+    {q:'Was MUSS ein Radfahrer tragen?',ok:'Helm',w:['Handschuhe','Brille','Knieschoner']},
+    {q:'Schall breitet sich aus als...?',ok:'Wellen',w:['Strahlen','Funken','Partikel']},
+    {q:'Was braucht Feuer zum Brennen?',ok:'Sauerstoff',w:['Wasser','Kälte','Stickstoff']},
+    {q:'Was ist ein Verbrennungsmotor?',ok:'Antrieb durch Kraftstoff',w:['Elektroantrieb','Wasserantrieb','Windantrieb']},
+    {q:'Welcher Pol des Magnets zeigt Richtung Norden?',ok:'Nordpol',w:['Südpol','Ostpol','Westpol']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'🧲',
+    ch:shuffle([{e:'🔬',l:d.ok},...d.w.map(x=>({e:'🔬',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 3-4 Englisch: Sätze
+function mkEngSentences(rounds=10){
+  const data=[
+    {q:'"How are you?" bedeutet:',ok:'Wie geht es dir?',w:['Wie heißt du?','Wo wohnst du?','Was machst du?']},
+    {q:'"I like cats" bedeutet:',ok:'Ich mag Katzen',w:['Ich bin eine Katze','Ich habe eine Katze','Katzen sind groß']},
+    {q:'"It is sunny" bedeutet:',ok:'Es ist sonnig',w:['Es regnet','Es ist kalt','Es ist bewölkt']},
+    {q:'"My name is Tim" bedeutet:',ok:'Ich heiße Tim',w:['Ich bin Tim','Tim ist groß','Tim mag Namen']},
+    {q:'"I am 9 years old" bedeutet:',ok:'Ich bin 9 Jahre alt',w:['Ich bin 9 Meter groß','9 ist meine Lieblingszahl','Ich habe 9 Katzen']},
+    {q:'"She has a dog" bedeutet:',ok:'Sie hat einen Hund',w:['Er hat einen Hund','Sie ist ein Hund','Hunde sind toll']},
+    {q:'"We go to school" bedeutet:',ok:'Wir gehen zur Schule',w:['Wir mögen die Schule','Schule ist groß','Ich gehe zur Schule']},
+    {q:'"What is your favourite colour?" fragt nach...',ok:'Lieblingsfarbe',w:['Lieblingstier','Lieblingsessen','Lieblingssport']},
+    {q:'"snowy" bedeutet:',ok:'verschneit',w:['sonnig','windig','regnerisch']},
+    {q:'"I can swim" bedeutet:',ok:'Ich kann schwimmen',w:['Ich schwimme gerne','Ich lerne schwimmen','Schwimmen ist toll']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'🇬🇧',
+    ch:shuffle([{e:'🇬🇧',l:d.ok},...d.w.map(x=>({e:'🇬🇧',l:x}))]),ok:d.ok}));
+}
+
+// Klasse 4 Englisch: Past Tense
+function mkEngPast(rounds=10){
+  const data=[
+    {q:'Past tense of "go"?',ok:'went',w:['goed','gone','goes']},
+    {q:'Past tense of "eat"?',ok:'ate',w:['eated','eaten','eats']},
+    {q:'Past tense of "have"?',ok:'had',w:['haved','has','haven']},
+    {q:'Past tense of "see"?',ok:'saw',w:['seed','seen','sees']},
+    {q:'Past tense of "run"?',ok:'ran',w:['runned','runed','runs']},
+    {q:'Past tense of "make"?',ok:'made',w:['maked','maken','makes']},
+    {q:'"I __ to school yesterday" — welches Wort?',ok:'went',w:['go','goes','gone']},
+    {q:'Past tense of "buy"?',ok:'bought',w:['buyed','buys','buying']},
+    {q:'Past tense of "come"?',ok:'came',w:['comed','comes','coming']},
+    {q:'Past tense of "give"?',ok:'gave',w:['gived','given','gives']},
+  ];
+  return shuffle(data).slice(0,rounds).map(d=>({type:'imgch',q:d.q,main:'⏪',
+    ch:shuffle([{e:'📝',l:d.ok},...d.w.map(x=>({e:'📝',l:x}))]),ok:d.ok}));
+}
+
+// ── GRADE-SPECIFIC TOPICS ──────────────────
+const TOPICS_BY_GRADE = {
+  1:{
+    mathe:[
+      {id:'m1_01',n:'Zahlen 1–5 zählen',ico:'🌱',d:'Zähle kleine Mengen',gen:()=>mkCount(1,5,10)},
+      {id:'m1_02',n:'Zahlen 1–10 zählen',ico:'🔟',d:'Zähle bis 10',gen:()=>mkCount(1,10,10)},
+      {id:'m1_03',n:'Zahlen 10–20',ico:'2️⃣0️⃣',d:'Zähle bis 20',gen:()=>mkCount(10,20,10)},
+      {id:'m1_04',n:'Größer oder kleiner?',ico:'⚖️',d:'Vergleiche Zahlen',gen:()=>mkCompare(1,10,10)},
+      {id:'m1_05',n:'Addieren bis 5',ico:'➕',d:'Einfaches Addieren',gen:()=>mkAdd(3,2,10)},
+      {id:'m1_06',n:'Addieren bis 10',ico:'➕',d:'Addiere bis 10',gen:()=>mkAdd(5,5,10)},
+      {id:'m1_07',n:'Subtrahieren bis 10',ico:'➖',d:'Abziehen',gen:()=>mkSub(10,10)},
+      {id:'m1_08',n:'Gerade & Ungerade',ico:'2️⃣',d:'Ist die Zahl gerade?',gen:()=>mkOddEven(10)},
+      {id:'m1_09',n:'Formen erkennen',ico:'🔷',d:'Welche Form ist das?',gen:()=>mkForms(10)},
+      {id:'m1_10',n:'Hälfte finden',ico:'✂️',d:'Was ist die Hälfte?',gen:()=>mkHalves(10)},
+    ],
+    deutsch:[
+      {id:'d1_01',n:'Tiere erkennen',ico:'🐾',d:'Was ist das Tier?',gen:()=>mkAnimalName(12)},
+      {id:'d1_02',n:'Farben lernen',ico:'🎨',d:'Welche Farbe ist das?',gen:()=>mkColors(10)},
+      {id:'d1_03',n:'Buchstaben A–F',ico:'🔤',d:'Erste Buchstaben',gen:()=>mkLetters(6)},
+      {id:'d1_04',n:'Buchstaben G–M',ico:'🔤',d:'Weitere Buchstaben',gen:()=>mkLetters(6)},
+      {id:'d1_05',n:'Buchstaben N–Z',ico:'🔤',d:'Letzte Buchstaben',gen:()=>mkLetters(6)},
+      {id:'d1_06',n:'Tierlaute',ico:'🎵',d:'Wer macht welchen Laut?',gen:()=>mkSounds(10)},
+      {id:'d1_07',n:'Ist es ein Nomen?',ico:'📝',d:'Nomen erkennen',gen:()=>mkNomen(10)},
+      {id:'d1_08',n:'Groß oder klein?',ico:'🔠',d:'Großschreibung',gen:()=>mkGross(10)},
+    ],
+    sachkunde:[
+      {id:'s1_01',n:'Jahreszeiten',ico:'🍂',d:'Frühling bis Winter',gen:()=>mkSeasons(12)},
+      {id:'s1_02',n:'Körperteile',ico:'🧍',d:'Zeige Körperteile',gen:()=>mkBody(10)},
+      {id:'s1_03',n:'Waldtiere',ico:'🌲',d:'Tiere im Wald',gen:()=>mkForest(10)},
+      {id:'s1_04',n:'Obst & Gemüse',ico:'🍎',d:'Was ist was?',gen:()=>mkFruitVeg(12)},
+      {id:'s1_05',n:'Das Wetter',ico:'☁️',d:'Verschiedene Wetterarten',gen:()=>mkWeather(10)},
+      {id:'s1_06',n:'Berufe',ico:'👷',d:'Welcher Beruf?',gen:()=>mkJobs(10)},
+    ],
+    englisch:[
+      {id:'e1_01',n:'Numbers 1–10',ico:'🔢',d:'Zahlen auf Englisch',gen:()=>shuffle(mkEngNums(10)).slice(0,8)},
+      {id:'e1_02',n:'Colors',ico:'🌈',d:'Farben auf Englisch',gen:()=>mkEngColors(10)},
+      {id:'e1_03',n:'Animals',ico:'🐾',d:'Tiere auf Englisch',gen:()=>mkEngAnimals(12)},
+      {id:'e1_04',n:'Family',ico:'👨‍👩‍👧',d:'Familie auf Englisch',gen:()=>mkEngFamily(10)},
+      {id:'e1_05',n:'School Things',ico:'🎒',d:'Schulsachen',gen:()=>mkEngSchool(10)},
+      {id:'e1_06',n:'Food',ico:'🍎',d:'Essen auf Englisch',gen:()=>mkEngFood(10)},
+    ],
+  },
+  2:{
+    mathe:[
+      {id:'m2_01',n:'Zahlen bis 100',ico:'💯',d:'Zähle bis 100',gen:()=>mkCount(11,30,10)},
+      {id:'m2_02',n:'Addieren bis 20',ico:'➕',d:'Addiere bis 20',gen:()=>mkAdd(10,10,10)},
+      {id:'m2_03',n:'Subtrahieren bis 20',ico:'➖',d:'Abziehen bis 20',gen:()=>mkSub(20,10)},
+      {id:'m2_04',n:'Einmaleins × 2',ico:'✖️',d:'Die 2er Reihe',gen:()=>mkMult(2,10)},
+      {id:'m2_05',n:'Einmaleins × 5',ico:'✖️',d:'Die 5er Reihe',gen:()=>mkMult(5,10)},
+      {id:'m2_06',n:'Einmaleins × 10',ico:'✖️',d:'Die 10er Reihe',gen:()=>mkMult(10,10)},
+      {id:'m2_07',n:'Einmaleins × 3',ico:'✖️',d:'Die 3er Reihe',gen:()=>mkMult(3,10)},
+      {id:'m2_08',n:'Größer/Kleiner bis 50',ico:'⚖️',d:'Zahlen vergleichen',gen:()=>mkCompare(1,50,10)},
+    ],
+    deutsch:[
+      {id:'d2_01',n:'Nomen erkennen',ico:'📝',d:'Was ist ein Nomen?',gen:()=>mkNomen(10)},
+      {id:'d2_02',n:'Groß/Kleinschreibung',ico:'🔠',d:'Großschreibung üben',gen:()=>mkGross(10)},
+      {id:'d2_03',n:'Tierlaute',ico:'🎵',d:'Welches Tier macht was?',gen:()=>mkAnimalSounds(10)},
+      {id:'d2_04',n:'Farben & Tiere',ico:'🎨',d:'Farben und Tiere',gen:()=>shuffle([...mkColors(5),...mkAnimalName(5)])},
+      {id:'d2_05',n:'Buchstaben komplett',ico:'🔤',d:'Alle Buchstaben',gen:()=>mkLetters(10)},
+    ],
+    sachkunde:[
+      {id:'s2_01',n:'Das Wetter',ico:'☁️',d:'Wetterarten kennen',gen:()=>mkWeather(10)},
+      {id:'s2_02',n:'Berufe',ico:'👷',d:'Welcher Beruf?',gen:()=>mkJobs(10)},
+      {id:'s2_03',n:'Körper & Gesundheit',ico:'🧠',d:'Unser Körper',gen:()=>mkBody(10)},
+      {id:'s2_04',n:'Tiere & Natur',ico:'🐾',d:'Tiere in der Natur',gen:()=>mkAnimalName(10)},
+    ],
+    englisch:[
+      {id:'e2_01',n:'Numbers 1–15',ico:'🔢',d:'Zahlen auf Englisch',gen:()=>shuffle(mkEngNums(15)).slice(0,10)},
+      {id:'e2_02',n:'Colors & Animals',ico:'🌈',d:'Farben und Tiere',gen:()=>shuffle([...mkEngColors(5),...mkEngAnimals(5)])},
+      {id:'e2_03',n:'Body Parts',ico:'🧍',d:'Körperteile',gen:()=>mkEngBody(10)},
+      {id:'e2_04',n:'Family',ico:'👨‍👩‍👧',d:'Familie',gen:()=>mkEngFamily(10)},
+      {id:'e2_05',n:'School & Food',ico:'🎒',d:'Schule und Essen',gen:()=>shuffle([...mkEngSchool(5),...mkEngFood(5)])},
+    ],
+  },
+  3:{
+    mathe:[
+      {id:'m3_01',n:'Einmaleins — alle Reihen',ico:'✖️',d:'1×1 komplett bis 10',gen:()=>mkMultAll(10)},
+      {id:'m3_02',n:'Einmaleins × 6',ico:'6️⃣',d:'Die 6er Reihe',gen:()=>mkMult(6,10)},
+      {id:'m3_03',n:'Einmaleins × 7',ico:'7️⃣',d:'Die 7er Reihe',gen:()=>mkMult(7,10)},
+      {id:'m3_04',n:'Einmaleins × 8',ico:'8️⃣',d:'Die 8er Reihe',gen:()=>mkMult(8,10)},
+      {id:'m3_05',n:'Einmaleins × 9',ico:'9️⃣',d:'Die 9er Reihe',gen:()=>mkMult(9,10)},
+      {id:'m3_06',n:'Division mit Rest',ico:'➗',d:'Teilen mit Rest',gen:()=>mkDivRest(10)},
+      {id:'m3_07',n:'3-stellige Zahlen addieren',ico:'🔢',d:'Addieren bis 1000',gen:()=>mk3Digit(10)},
+      {id:'m3_08',n:'Subtrahieren bis 1000',ico:'➖',d:'3-stellige Subtraktion',gen:()=>mkSub(999,10)},
+      {id:'m3_09',n:'3D-Körper',ico:'🎲',d:'Würfel, Quader, Kugel...',gen:()=>mk3DForms()},
+      {id:'m3_10',n:'Größer/Kleiner bis 1000',ico:'⚖️',d:'Zahlen bis 1000 vergleichen',gen:()=>mkCompare(100,999,10)},
+      {id:'m3_11',n:'Halbieren & Verdoppeln',ico:'✂️',d:'Hälfte und Doppeltes',gen:()=>mkHalves(10)},
+      {id:'m3_12',n:'Gemischtes Einmaleins',ico:'🌀',d:'Alle Reihen durcheinander',gen:()=>mkMultAll(10)},
+    ],
+    deutsch:[
+      {id:'d3_01',n:'Wortarten erkennen',ico:'📝',d:'Nomen, Verb, Adjektiv',gen:()=>mkWortarten(10)},
+      {id:'d3_02',n:'Plural-Formen',ico:'📚',d:'Mehrzahl bilden',gen:()=>mkPlural(10)},
+      {id:'d3_03',n:'Zeitformen — Präsens/Präteritum',ico:'⏰',d:'Vergangenheit und Gegenwart',gen:()=>mkZeitformen3(10)},
+      {id:'d3_04',n:'Mehr Wortarten',ico:'📖',d:'Wortarten üben',gen:()=>shuffle(mkWortarten(10))},
+      {id:'d3_05',n:'Perfekt bilden',ico:'⏳',d:'Perfekt-Formen',gen:()=>shuffle(mkZeitformen3(10))},
+      {id:'d3_06',n:'Mehr Pluralformen',ico:'📚',d:'Mehrzahl wiederholen',gen:()=>shuffle(mkPlural(10))},
+      {id:'d3_07',n:'Nomen, Verb oder Adjektiv?',ico:'🔤',d:'Alle Wortarten',gen:()=>shuffle(mkWortarten(10))},
+      {id:'d3_08',n:'Tiernamen & Plurale',ico:'🐾',d:'Tiere in der Mehrzahl',gen:()=>mkAnimalName(10)},
+    ],
+    sachkunde:[
+      {id:'s3_01',n:'Körper & Gesundheit',ico:'🧠',d:'Unser Körper',gen:()=>mkKoerperGesund(10)},
+      {id:'s3_02',n:'Magnetismus',ico:'🧲',d:'Magnete und Physik',gen:()=>mkPhysik(10)},
+      {id:'s3_03',n:'Tiere & Natur',ico:'🌿',d:'Tiere in der Natur',gen:()=>mkAnimalName(12)},
+      {id:'s3_04',n:'Jahreszeiten & Wetter',ico:'🌦️',d:'Wetter und Jahreszeiten',gen:()=>shuffle([...mkSeasons(5),...mkWeather(5)])},
+      {id:'s3_05',n:'Verkehr & Sicherheit',ico:'🚦',d:'Sicher unterwegs',gen:()=>shuffle(mkPhysik(10))},
+      {id:'s3_06',n:'Pflanzen & Tiere',ico:'🌱',d:'Natur erkunden',gen:()=>mkFruitVeg(10)},
+    ],
+    englisch:[
+      {id:'e3_01',n:'Sentences & Phrases',ico:'💬',d:'Sätze auf Englisch',gen:()=>mkEngSentences(10)},
+      {id:'e3_02',n:'Numbers 1–20',ico:'🔢',d:'Zahlen bis 20',gen:()=>shuffle(mkEngNums(15)).slice(0,10)},
+      {id:'e3_03',n:'Animals & Colors',ico:'🌈',d:'Tiere und Farben',gen:()=>shuffle([...mkEngAnimals(6),...mkEngColors(4)])},
+      {id:'e3_04',n:'Body & School',ico:'🎒',d:'Körper und Schule',gen:()=>shuffle([...mkEngBody(5),...mkEngSchool(5)])},
+      {id:'e3_05',n:'Family & Food',ico:'👨‍👩‍👧',d:'Familie und Essen',gen:()=>shuffle([...mkEngFamily(5),...mkEngFood(5)])},
+      {id:'e3_06',n:'Mixed Vocabulary',ico:'🌍',d:'Vokabeln gemischt',gen:()=>shuffle([...mkEngAnimals(4),...mkEngColors(3),...mkEngBody(3)])},
+    ],
+  },
+  4:{
+    mathe:[
+      {id:'m4_01',n:'Große Zahlen bis 1 Million',ico:'🔢',d:'Rechnen mit großen Zahlen',gen:()=>mkBigNum(10)},
+      {id:'m4_02',n:'Schriftliche Multiplikation',ico:'✖️',d:'3-stellig × einstellig',gen:()=>mkMultBig(10)},
+      {id:'m4_03',n:'Schriftliche Division',ico:'➗',d:'3-stellig ÷ einstellig',gen:()=>mkDivBig(10)},
+      {id:'m4_04',n:'Brüche verstehen',ico:'🍕',d:'Brüche erkennen und rechnen',gen:()=>mkBrueche(10)},
+      {id:'m4_05',n:'Fläche & Umfang',ico:'📐',d:'Rechteck, Quadrat berechnen',gen:()=>mkGeom(8)},
+      {id:'m4_06',n:'Maßeinheiten umrechnen',ico:'📏',d:'m, cm, kg, g, l umrechnen',gen:()=>mkEinheiten(10)},
+      {id:'m4_07',n:'Einmaleins — Turbomodus',ico:'⚡',d:'Schnelles Einmaleins',gen:()=>mkMultAll(10)},
+      {id:'m4_08',n:'Gemischtes Rechnen',ico:'🌀',d:'Alles zusammen',gen:()=>shuffle([...mkBigNum(4),...mkMultBig(3),...mkDivBig(3)])},
+      {id:'m4_09',n:'Nochmals Brüche',ico:'1️⃣/2️⃣',d:'Brüche vertiefen',gen:()=>shuffle(mkBrueche(10))},
+      {id:'m4_10',n:'Maßeinheiten Turbo',ico:'⚡',d:'Umrechnen üben',gen:()=>shuffle(mkEinheiten(10))},
+    ],
+    deutsch:[
+      {id:'d4_01',n:'Satzglieder bestimmen',ico:'📖',d:'Subjekt, Prädikat, Objekt',gen:()=>mkSatzglieder(10)},
+      {id:'d4_02',n:'Die vier Kasus (Fälle)',ico:'📝',d:'Nominativ, Akkusativ, Dativ',gen:()=>mkKasus(10)},
+      {id:'d4_03',n:'Alle Zeitformen',ico:'⏳',d:'Präsens bis Futur',gen:()=>mkZeitformen4(10)},
+      {id:'d4_04',n:'Direkte Rede',ico:'💬',d:'Zitate richtig schreiben',gen:()=>mkDirRede(8)},
+      {id:'d4_05',n:'Wortarten Turbo',ico:'⚡',d:'Schnell erkennen',gen:()=>shuffle(mkWortarten(10))},
+      {id:'d4_06',n:'Kasus Turbo',ico:'⚡',d:'Fälle üben',gen:()=>shuffle(mkKasus(10))},
+      {id:'d4_07',n:'Satzglieder Turbo',ico:'⚡',d:'Schnelles Bestimmen',gen:()=>shuffle(mkSatzglieder(10))},
+      {id:'d4_08',n:'Gemischte Grammatik',ico:'🌀',d:'Alles zusammen',gen:()=>shuffle([...mkSatzglieder(4),...mkKasus(3),...mkZeitformen4(3)])},
+    ],
+    sachkunde:[
+      {id:'s4_01',n:'Körper & Gesundheit',ico:'🧠',d:'Menschlicher Körper',gen:()=>mkKoerperGesund(10)},
+      {id:'s4_02',n:'Physik & Magnete',ico:'🧲',d:'Magnetismus und Physik',gen:()=>mkPhysik(10)},
+      {id:'s4_03',n:'Natur & Umwelt',ico:'🌿',d:'Tiere und Pflanzen',gen:()=>shuffle([...mkForest(5),...mkFruitVeg(5)])},
+      {id:'s4_04',n:'Wetter & Klima',ico:'🌍',d:'Wetter und Jahreszeiten',gen:()=>shuffle([...mkWeather(5),...mkSeasons(5)])},
+      {id:'s4_05',n:'Verkehr & Sicherheit',ico:'🚦',d:'Regeln im Straßenverkehr',gen:()=>shuffle(mkPhysik(10))},
+      {id:'s4_06',n:'Gemischt — Turbo',ico:'⚡',d:'Alles aus Sachkunde',gen:()=>shuffle([...mkKoerperGesund(4),...mkPhysik(3),...mkWeather(3)])},
+    ],
+    englisch:[
+      {id:'e4_01',n:'Past Tense',ico:'⏪',d:'Vergangene Zeit auf Englisch',gen:()=>mkEngPast(10)},
+      {id:'e4_02',n:'Sentences & Meaning',ico:'💬',d:'Sätze verstehen',gen:()=>mkEngSentences(10)},
+      {id:'e4_03',n:'Vocabulary Turbo',ico:'⚡',d:'Vokabeln schnell',gen:()=>shuffle([...mkEngAnimals(4),...mkEngColors(3),...mkEngFood(3)])},
+      {id:'e4_04',n:'Body & School',ico:'🎒',d:'Körper und Schule',gen:()=>shuffle([...mkEngBody(5),...mkEngSchool(5)])},
+      {id:'e4_05',n:'Family & Numbers',ico:'👨‍👩‍👧',d:'Familie und Zahlen',gen:()=>shuffle([...mkEngFamily(5),...mkEngNums(5)])},
+      {id:'e4_06',n:'Past Tense Turbo',ico:'⏪',d:'Vergangenheit meistern',gen:()=>shuffle(mkEngPast(10))},
+    ],
+  },
+};
+
 const TOPICS = {
-  mathe:[
     {id:'m01',n:'Zahlen 1–5 zählen',ico:'🌱',d:'Zähle kleine Mengen',gen:()=>mkCount(1,5,10)},
     {id:'m02',n:'Zahlen 1–10 zählen',ico:'🔟',d:'Zähle bis 10',gen:()=>mkCount(1,10,10)},
     {id:'m03',n:'Zahlen 10–20 zählen',ico:'2️⃣0️⃣',d:'Zähle bis 20',gen:()=>mkCount(10,20,10)},
@@ -840,6 +1335,9 @@ function goStart(){
   say(`Hallo ${S.name}! Schön dass du da bist! Was möchtest du heute lernen?`);
 }
 
+// Aktive Topics je nach Klasse
+function getTopics(key){return(TOPICS_BY_GRADE[S.grade]||TOPICS_BY_GRADE[1])[key]||TOPICS[key]||[];}
+
 function renderHome(){
   document.getElementById('h-name').textContent=S.name;
   document.getElementById('h-grade').textContent=`Klasse ${S.grade}`;
@@ -847,7 +1345,7 @@ function renderHome(){
   const grid=document.getElementById('subj-grid');
   grid.innerHTML='';
   Object.entries(SUBJECTS).forEach(([key,sub])=>{
-    const tlist=TOPICS[key]||[];
+    const tlist=getTopics(key);
     const done=tlist.filter(t=>S.prog[t.id]?.done).length;
     const pct=tlist.length?done/tlist.length*100:0;
     const c=document.createElement('div');
@@ -865,7 +1363,7 @@ function openSubject(key){
   document.getElementById('tp-stars').textContent=S.stars;
   const list=document.getElementById('tp-list');
   list.innerHTML='';
-  (TOPICS[key]||[]).forEach((t,i)=>{
+  getTopics(key).forEach((t,i)=>{
     const p=S.prog[t.id];
     const done=p?.done;
     const d=document.createElement('div');
@@ -881,7 +1379,7 @@ function openSubject(key){
 // EXERCISE ENGINE
 // ═══════════════════════════════════════════
 function startTopic(idx){
-  const t=(TOPICS[curSubj]||[])[idx];
+  const t=getTopics(curSubj)[idx];
   if(!t)return;
   curTopicIdx=idx;
   curExs=shuffle(t.gen()).slice(0,5);
@@ -1010,51 +1508,62 @@ function renderYesNo(ex,el){
 // ═══════════════════════════════════════════
 // ANIMATIONEN
 // ═══════════════════════════════════════════
-// ── Konfetti via requestAnimationFrame (100% kompatibel) ──
+// ════ MEGA ANIMATIONEN auf STEROIDE ════
+
+// 1. KONFETTI — 100 Partikel, 3 Quellen (links/mitte/rechts), Formen: Kreis/Quadrat/Stern
 function confetti(){
-  const colors=['#f5a623','#22c55e','#3b82f6','#f43f5e','#a855f7','#fbbf24','#34d399','#fb923c','#e879f9'];
+  const colors=['#f5a623','#22c55e','#3b82f6','#f43f5e','#a855f7','#fbbf24','#34d399','#fb923c','#e879f9','#67e8f9','#ff6b6b','#ffd93d'];
+  const W=window.innerWidth,H=window.innerHeight;
   const particles=[];
-  for(let i=0;i<60;i++){
+  for(let i=0;i<100;i++){
     const el=document.createElement('div');
-    el.style.cssText=`position:fixed;z-index:999;pointer-events:none;border-radius:${Math.random()>.5?'50%':'3px'};background:${colors[i%colors.length]};width:${7+Math.random()*8}px;height:${7+Math.random()*8}px`;
+    const sz=6+Math.random()*12;
+    const shape=i%3===0?'50%':i%3===1?'3px':'0';
+    el.style.cssText=`position:fixed;z-index:9999;pointer-events:none;border-radius:${shape};background:${colors[i%colors.length]};width:${sz}px;height:${sz}px;top:0;left:0`;
     document.body.appendChild(el);
-    particles.push({el,x:Math.random()*window.innerWidth,y:-10,
-      vx:(Math.random()-0.5)*6,vy:2+Math.random()*4,
-      rot:Math.random()*360,rotV:(Math.random()-0.5)*15,
-      delay:Math.random()*300,born:0,done:false});
+    // Aus 3 Quellen schießen
+    const src=i<33?W*.2:i<66?W*.5:W*.8;
+    particles.push({el,x:src,y:-20,
+      vx:(Math.random()-0.5)*14,
+      vy:-(8+Math.random()*10),
+      rot:Math.random()*360,
+      rotV:(Math.random()-0.5)*20,
+      gravity:0.4+Math.random()*0.3,
+      delay:Math.random()*200,born:0,done:false});
   }
   const start=performance.now();
   function frame(now){
     let alive=false;
     particles.forEach(p=>{
       if(p.done)return;
-      if(!p.born)p.born=now+p.delay;
+      if(!p.born){p.born=now+p.delay;}
       if(now<p.born){alive=true;return;}
-      const t=(now-p.born)/1800;
-      if(t>=1){p.el.remove();p.done=true;return;}
+      const age=(now-p.born);
+      if(p.y>H+50||age>3000){p.el.remove();p.done=true;return;}
       alive=true;
-      p.x+=p.vx; p.y+=p.vy+(t*2); p.rot+=p.rotV;
+      p.vy+=p.gravity; p.x+=p.vx; p.y+=p.vy; p.rot+=p.rotV;
+      const t=age/3000;
       p.el.style.transform=`translate(${p.x}px,${p.y}px) rotate(${p.rot}deg)`;
-      p.el.style.opacity=t<0.8?1:1-(t-0.8)/0.2;
+      p.el.style.opacity=t<0.7?1:1-(t-0.7)/0.3;
     });
     if(alive)requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
 }
 
-// ── Sterne-Explosion via rAF ──
+// 2. STERNE-EXPLOSION — 16 Sterne in alle Richtungen
 function starBurst(){
-  const cx=window.innerWidth/2, cy=window.innerHeight*0.4;
-  const emojis=['⭐','🌟','✨','💫','🎉','🎊','💥','🏆','🌈','🎈'];
+  const cx=window.innerWidth/2, cy=window.innerHeight*0.38;
+  const emojis=['⭐','🌟','✨','💫','🎉','🎊','💥','🏆','🌈','🎈','🦋','🌸','💎','🔥','🚀','🎯'];
   const stars=[];
-  for(let i=0;i<10;i++){
+  for(let i=0;i<16;i++){
     const el=document.createElement('div');
-    const angle=(i/10)*Math.PI*2+(Math.random()-.5)*.4;
-    const dist=100+Math.random()*80;
+    const angle=(i/16)*Math.PI*2+(Math.random()-.5)*.3;
+    const dist=120+Math.random()*100;
     el.textContent=emojis[i%emojis.length];
-    el.style.cssText=`position:fixed;z-index:998;pointer-events:none;font-size:1.9rem;left:${cx}px;top:${cy}px;transform:translate(-50%,-50%)`;
+    el.style.cssText=`position:fixed;z-index:9998;pointer-events:none;font-size:${1.6+Math.random()*.8}rem;left:${cx}px;top:${cy}px;transform:translate(-50%,-50%)`;
     document.body.appendChild(el);
-    stars.push({el,tx:Math.cos(angle)*dist,ty:Math.sin(angle)*dist,dur:500+Math.random()*300,done:false});
+    stars.push({el,tx:Math.cos(angle)*dist,ty:Math.sin(angle)*dist,dur:600+Math.random()*400,done:false});
   }
   const start=performance.now();
   function frame(now){
@@ -1062,22 +1571,66 @@ function starBurst(){
     stars.forEach(s=>{
       if(s.done)return;
       const t=Math.min((now-start)/s.dur,1);
-      const ease=1-Math.pow(1-t,3);
-      s.el.style.transform=`translate(calc(-50% + ${s.tx*ease}px),calc(-50% + ${s.ty*ease}px)) scale(${1-ease*.8})`;
-      s.el.style.opacity=1-ease;
-      if(t>=1){s.el.remove();s.done=true;}
-      else alive=true;
+      const ease=1-Math.pow(1-t,2.5);
+      s.el.style.transform=`translate(calc(-50% + ${s.tx*ease}px),calc(-50% + ${s.ty*ease}px)) scale(${t<0.5?1+t:1+(1-t)*.3})`;
+      s.el.style.opacity=t<0.7?1:1-(t-0.7)/0.3;
+      if(t>=1){s.el.remove();s.done=true;}else alive=true;
     });
     if(alive)requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
 }
 
+// 3. LUMIO TANZT — Duolingo-Style Maskottchen-Celebration
+let mascotEl=null;
+const MASCOT_PHRASES_DE=['Ja! Wau!','Perfekt!','RICHTIG!','Du rockst!','Mega! 🔥','Jawohl!','Klasse!','BOOM! 💥'];
+const MASCOT_PHRASES_EN=['YES!','CORRECT!','Amazing!','You rock!','PERFECT! 🔥','NAILED IT!','Great!','BOOM! 💥'];
+function showMascot(eng=false){
+  if(mascotEl)mascotEl.remove();
+  const phrases=eng?MASCOT_PHRASES_EN:MASCOT_PHRASES_DE;
+  const txt=phrases[Math.floor(Math.random()*phrases.length)];
+  mascotEl=document.createElement('div');
+  mascotEl.className='mascot-wrap';
+  mascotEl.innerHTML=`<div class="mascot-bubble">${txt}</div><span class="mascot-emoji">🦉</span>`;
+  document.body.appendChild(mascotEl);
+  // Reinkommen
+  requestAnimationFrame(()=>{
+    mascotEl.style.transition='bottom .35s cubic-bezier(.34,1.56,.64,1)';
+    mascotEl.style.bottom='50px';
+  });
+  // Rausgehen
+  setTimeout(()=>{
+    if(!mascotEl)return;
+    mascotEl.style.transition='bottom .4s ease-in';
+    mascotEl.style.bottom='-260px';
+    setTimeout(()=>{mascotEl&&mascotEl.remove();mascotEl=null;},420);
+  },1800);
+}
+
+// 4. SCREEN FLASH
+function screenFlash(ok=true){
+  const el=document.createElement('div');
+  el.className='flash';
+  el.style.background=ok?'rgba(34,197,94,.35)':'rgba(239,68,68,.2)';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),500);
+}
+
+// 5. COMBO COUNTER
+function showCombo(n){
+  const el=document.createElement('div');
+  el.className='combo-pop';
+  const msgs={2:'2x Combo! 🔥',3:'3x Combo! 💥',4:'4x Feuer! 🔥💥',5:'5x MEGA! 🚀',6:'6x WAHNSINN! 🌟',7:'7x UNGLAUBLICH! 💎',8:'8x GOTT-MODUS! 👑'};
+  el.textContent=msgs[n]||`${n}x COMBO! 🔥`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),800);
+}
+
 function shakeEl(el){
   el.style.animation='none';
   void el.offsetHeight;
-  el.style.animation='shake-no .45s ease';
-  setTimeout(()=>el.style.animation='',500);
+  el.style.animation='shake-no .5s ease';
+  setTimeout(()=>el.style.animation='',550);
 }
 
 // ── 100 Motivationssätze (Prozess-Lob, Carol Dweck) ──
@@ -1187,23 +1740,25 @@ function check(ans,ok,el,grid,sel){
 
   if(correct){
     curOk++;exStreak++;breakCounter++;
-    // Animationen!
-    confetti();
-    starBurst();
+    // MEGA ANIMATIONEN
+    confetti();          // 100 Konfetti-Partikel
+    starBurst();         // 16 Sterne explodieren
+    screenFlash(true);   // Grüner Screen-Flash
+    showMascot(eng);     // Lumio tanzt rein
     showFb(true);
+    if(exStreak>=2)setTimeout(()=>showCombo(exStreak),400); // Combo-Counter
     if(curOk<=3)document.getElementById('es'+(curOk-1))?.classList.add('lit');
     const praise=praiseArr[Math.floor(Math.random()*praiseArr.length)];
-    // Antwort vorlesen → Lob → weiter
     sayThen(clean(ok),()=>sayThen(praise,next));
   }else{
     exStreak=0;
     showFb(false);
-    shakeEl(el); // Schüttel-Animation bei Falsch
+    screenFlash(false);  // Roter Flash
+    shakeEl(el);         // Schüttel-Animation
     const err=errArr[Math.floor(Math.random()*errArr.length)];
     grid.querySelectorAll(sel).forEach(b=>{
       if(b.textContent.trim()===ok||b.querySelector('.lb')?.textContent===ok)b.classList.add('ok');
     });
-    // Richtige Antwort sprechen → Ermutigung → weiter
     const errText=eng?`${err} ${ok}`:`${err}: ${ok}`;
     sayThen(clean(ok),()=>sayThen(errText,next));
   }
@@ -1240,7 +1795,7 @@ function showFb(ok){
 function hideFb(){document.getElementById('fb').className='fb';}
 
 function finish(){
-  const t=(TOPICS[curSubj]||[])[curTopicIdx];
+  const t=getTopics(curSubj)[curTopicIdx];
   const tot=curExs.length,pts=curOk*10;
   S.stars+=pts;
   if(t)S.prog[t.id]={done:curOk>=Math.ceil(tot*0.6)};
@@ -1264,7 +1819,7 @@ function finish(){
 function exitEx(){go('s-topics');}
 function nextTopic(){
   const next=curTopicIdx+1;
-  if(next<(TOPICS[curSubj]||[]).length)startTopic(next);
+  if(next<getTopics(curSubj).length)startTopic(next);
   else{renderHome();go('s-home');}
 }
 
