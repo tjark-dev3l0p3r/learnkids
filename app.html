@@ -1084,6 +1084,7 @@ const TOPICS_BY_GRADE = {
       {id:'d1_06',n:'Tierlaute',ico:'🎵',d:'Wer macht welchen Laut?',gen:()=>mkSounds(10)},
       {id:'d1_07',n:'Ist es ein Nomen?',ico:'📝',d:'Nomen erkennen',gen:()=>mkNomen(10)},
       {id:'d1_08',n:'Groß oder klein?',ico:'🔠',d:'Großschreibung',gen:()=>mkGross(10)},
+      {id:'d1_09',n:'Vokabeln lernen',ico:'💡',d:'Wörter mit Beispielsätzen',gen:()=>mkVocabDE(8)},
     ],
     sachkunde:[
       {id:'s1_01',n:'Jahreszeiten',ico:'🍂',d:'Frühling bis Winter',gen:()=>mkSeasons(12)},
@@ -1100,6 +1101,7 @@ const TOPICS_BY_GRADE = {
       {id:'e1_04',n:'Family',ico:'👨‍👩‍👧',d:'Familie auf Englisch',gen:()=>mkEngFamily(10)},
       {id:'e1_05',n:'School Things',ico:'🎒',d:'Schulsachen',gen:()=>mkEngSchool(10)},
       {id:'e1_06',n:'Food',ico:'🍎',d:'Essen auf Englisch',gen:()=>mkEngFood(10)},
+      {id:'e1_07',n:'Vocabulary',ico:'💡',d:'English words with examples',gen:()=>mkVocabEN(8)},
     ],
   },
   2:{
@@ -1158,6 +1160,8 @@ const TOPICS_BY_GRADE = {
       {id:'d3_06',n:'Mehr Pluralformen',ico:'📚',d:'Mehrzahl wiederholen',gen:()=>shuffle(mkPlural(10))},
       {id:'d3_07',n:'Nomen, Verb oder Adjektiv?',ico:'🔤',d:'Alle Wortarten',gen:()=>shuffle(mkWortarten(10))},
       {id:'d3_08',n:'Tiernamen & Plurale',ico:'🐾',d:'Tiere in der Mehrzahl',gen:()=>mkAnimalName(10)},
+      {id:'d3_09',n:'Vokabeln mit Satz',ico:'💡',d:'Wörter im Kontext verstehen',gen:()=>mkVocabDE(8)},
+      {id:'d3_10',n:'Lückentext Vokabeln',ico:'✏️',d:'Welches Wort passt?',gen:()=>mkVocabFillDE(8)},
     ],
     sachkunde:[
       {id:'s3_01',n:'Körper & Gesundheit',ico:'🧠',d:'Unser Körper',gen:()=>mkKoerperGesund(10)},
@@ -1198,6 +1202,7 @@ const TOPICS_BY_GRADE = {
       {id:'d4_06',n:'Kasus Turbo',ico:'⚡',d:'Fälle üben',gen:()=>shuffle(mkKasus(10))},
       {id:'d4_07',n:'Satzglieder Turbo',ico:'⚡',d:'Schnelles Bestimmen',gen:()=>shuffle(mkSatzglieder(10))},
       {id:'d4_08',n:'Gemischte Grammatik',ico:'🌀',d:'Alles zusammen',gen:()=>shuffle([...mkSatzglieder(4),...mkKasus(3),...mkZeitformen4(3)])},
+      {id:'d4_09',n:'Vokabeln mit Satz',ico:'💡',d:'Bedeutungen im Kontext',gen:()=>shuffle([...mkVocabDE(5),...mkVocabFillDE(5)])},
     ],
     sachkunde:[
       {id:'s4_01',n:'Körper & Gesundheit',ico:'🧠',d:'Menschlicher Körper',gen:()=>mkKoerperGesund(10)},
@@ -1214,6 +1219,7 @@ const TOPICS_BY_GRADE = {
       {id:'e4_04',n:'Body & School',ico:'🎒',d:'Körper und Schule',gen:()=>shuffle([...mkEngBody(5),...mkEngSchool(5)])},
       {id:'e4_05',n:'Family & Numbers',ico:'👨‍👩‍👧',d:'Familie und Zahlen',gen:()=>shuffle([...mkEngFamily(5),...mkEngNums(5)])},
       {id:'e4_06',n:'Past Tense Turbo',ico:'⏪',d:'Vergangenheit meistern',gen:()=>shuffle(mkEngPast(10))},
+      {id:'e4_07',n:'Vocabulary in Context',ico:'💡',d:'Words with example sentences',gen:()=>shuffle([...mkVocabEN(5),...mkVocabFillEN(5)])},
     ],
   },
 };
@@ -1321,6 +1327,7 @@ function renderEx(){
   else if(ex.type==='imgch')renderImgCh(ex,body);
   else if(ex.type==='cmp')renderCmp(ex,body);
   else if(ex.type==='yesno')renderYesNo(ex,body);
+  else if(ex.type==='vocab')renderVocab(ex,body);
   // Frage vorlesen — ohne Emojis, etwas langsamer für Kinder
   setTimeout(()=>say(ex.q,0.82),300);
 }
@@ -1424,7 +1431,108 @@ function renderYesNo(ex,el){
   el.appendChild(grid);
 }
 
-// ═══════════════════════════════════════════
+// ── VOKABEL-RENDERER ─────────────────────
+function renderVocab(ex,el){
+  // Karte: Wort groß + Wortart + Beispielsatz
+  const card=document.createElement('div');
+  card.style.cssText='background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.25);border-radius:18px;padding:18px 16px;margin-bottom:14px;text-align:center';
+  card.innerHTML=`
+    <div style="font-family:Baloo 2,cursive;font-size:2rem;font-weight:900;color:#fbbf24;margin-bottom:4px">${ex.word}</div>
+    <div style="font-size:.72rem;color:rgba(255,255,255,.5);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">${ex.pos||''}</div>
+    <div style="font-size:.9rem;color:rgba(255,255,255,.85);line-height:1.6;font-style:italic;border-top:1px solid rgba(255,255,255,.15);padding-top:10px">
+      ${ex.example?`"${ex.example}"`:''}
+    </div>`;
+  el.appendChild(card);
+
+  // Antwort-Buttons
+  const grid=document.createElement('div');
+  grid.className='ans-grid g2';
+  (ex.ch||[]).forEach(c=>{
+    const btn=document.createElement('button');
+    btn.className='ans';
+    btn.style.cssText='font-size:1rem;font-weight:700;min-height:58px;line-height:1.3';
+    btn.textContent=c.l;
+    btn.onclick=()=>check(c.l,ex.ok,btn,grid,'.ans');
+    grid.appendChild(btn);
+  });
+  el.appendChild(grid);
+}
+
+// ── VOKABEL-DATENBASIS ────────────────────
+const VOCAB_DE=[
+  // Verben
+  {word:'rennen',pos:'Verb',example:'Der Hund rennt durch den Park.',meaning:'sich sehr schnell bewegen',wrong:['essen','schlafen','singen']},
+  {word:'flüstern',pos:'Verb',example:'Sie flüsterte, damit niemand sie hörte.',meaning:'sehr leise sprechen',wrong:['schreien','rennen','tanzen']},
+  {word:'staunen',pos:'Verb',example:'Er staunte über den großen Baum.',meaning:'sehr überrascht und beeindruckt sein',wrong:['schlafen','rennen','lachen']},
+  {word:'zögern',pos:'Verb',example:'Sie zögerte, bevor sie antwortete.',meaning:'sich nicht sofort entscheiden',wrong:['rennen','schreien','tanzen']},
+  {word:'sammeln',pos:'Verb',example:'Er sammelt bunte Steine im Park.',meaning:'viele Dinge zusammenbringen',wrong:['verlieren','schlafen','rennen']},
+  {word:'beobachten',pos:'Verb',example:'Sie beobachtete die Vögel am Himmel.',meaning:'genau hinschauen',wrong:['vergessen','schlafen','rennen']},
+  {word:'klettern',pos:'Verb',example:'Die Katze klettert auf den Baum.',meaning:'nach oben steigen',wrong:['schwimmen','schlafen','lachen']},
+  {word:'glitzern',pos:'Verb',example:'Der Schnee glitzert in der Sonne.',meaning:'hell und funkend leuchten',wrong:['sinken','schlafen','rennen']},
+  {word:'stolpern',pos:'Verb',example:'Er stolperte über einen Stein.',meaning:'aus Versehen den Fuß an etwas stoßen',wrong:['springen','tanzen','schwimmen']},
+  {word:'flimmern',pos:'Verb',example:'Die Kerzen flimmern im Wind.',meaning:'schnell hin und her zittern und leuchten',wrong:['rennen','schlafen','rufen']},
+  // Adjektive
+  {word:'mutig',pos:'Adjektiv',example:'Der mutige Ritter kämpfte gegen den Drachen.',meaning:'keine Angst haben',wrong:['faul','ängstlich','traurig']},
+  {word:'neugierig',pos:'Adjektiv',example:'Die neugierige Katze schaute in jede Ecke.',meaning:'alles wissen und sehen wollen',wrong:['müde','traurig','böse']},
+  {word:'geschickt',pos:'Adjektiv',example:'Die geschickte Tänzerin bewegte sich elegant.',meaning:'etwas sehr gut können',wrong:['faul','traurig','langsam']},
+  {word:'geduldig',pos:'Adjektiv',example:'Der geduldige Lehrer erklärte es nochmal.',meaning:'ruhig warten können',wrong:['schnell','laut','böse']},
+  {word:'flink',pos:'Adjektiv',example:'Der flinke Fuchs lief durch den Wald.',meaning:'sehr schnell und beweglich',wrong:['langsam','faul','traurig']},
+  {word:'zuverlässig',pos:'Adjektiv',example:'Er ist sehr zuverlässig und kommt immer pünktlich.',meaning:'man kann sich darauf verlassen',wrong:['vergesslich','faul','langsam']},
+  // Nomen
+  {word:'die Neugier',pos:'Nomen',example:'Aus reiner Neugier öffnete sie die Tür.',meaning:'der Wunsch, etwas Neues zu wissen',wrong:['die Müdigkeit','die Trauer','die Stille']},
+  {word:'das Abenteuer',pos:'Nomen',example:'Die Reise war ein großes Abenteuer.',meaning:'ein spannendes, aufregendes Erlebnis',wrong:['die Langeweile','der Schlaf','die Stille']},
+  {word:'die Geduld',pos:'Nomen',example:'Mit viel Geduld löste er das Rätsel.',meaning:'die Fähigkeit, ruhig zu warten',wrong:['die Eile','der Lärm','die Wut']},
+  {word:'der Mut',pos:'Nomen',example:'Er fasste all seinen Mut und fragte.',meaning:'keine Angst haben bei schwierigen Dingen',wrong:['die Angst','die Trauer','die Müdigkeit']},
+  {word:'die Stille',pos:'Nomen',example:'In der Stille des Waldes konnte man die Vögel hören.',meaning:'wenn es ganz ruhig und leise ist',wrong:['der Lärm','die Eile','das Gewitter']},
+  {word:'das Vertrauen',pos:'Nomen',example:'Sie hatte volles Vertrauen in ihre Freundin.',meaning:'jemanden für ehrlich und verlässlich halten',wrong:['der Zweifel','die Angst','der Streit']},
+];
+
+const VOCAB_EN=[
+  {word:'brave',pos:'Adjective',example:'The brave knight fought the dragon.',meaning:'not afraid of danger',wrong:['lazy','tired','sad']},
+  {word:'curious',pos:'Adjective',example:'The curious cat looked into every corner.',meaning:'wanting to know or learn things',wrong:['bored','angry','sleepy']},
+  {word:'giggle',pos:'Verb',example:'The children giggled at the funny joke.',meaning:'to laugh in a silly, high way',wrong:['cry','sleep','run']},
+  {word:'enormous',pos:'Adjective',example:'The elephant was enormous!',meaning:'very very big',wrong:['tiny','fast','cold']},
+  {word:'whisper',pos:'Verb',example:'She whispered so nobody could hear her.',meaning:'to speak very quietly',wrong:['shout','run','dance']},
+  {word:'discover',pos:'Verb',example:'We discovered a hidden treasure in the garden.',meaning:'to find something for the first time',wrong:['lose','sleep','forget']},
+  {word:'adventure',pos:'Noun',example:'The trip was a great adventure.',meaning:'an exciting and unusual experience',wrong:['homework','silence','sleep']},
+  {word:'clumsy',pos:'Adjective',example:'He was clumsy and dropped the glass.',meaning:'often dropping or bumping into things',wrong:['graceful','fast','clever']},
+  {word:'mysterious',pos:'Adjective',example:'The mysterious box was locked.',meaning:'strange and not easy to understand',wrong:['boring','loud','simple']},
+  {word:'gentle',pos:'Adjective',example:'She stroked the cat with a gentle touch.',meaning:'kind and soft, not rough',wrong:['rough','loud','angry']},
+  {word:'wander',pos:'Verb',example:'We wandered through the forest without a plan.',meaning:'to walk slowly without a fixed direction',wrong:['run','sleep','shout']},
+  {word:'glitter',pos:'Verb',example:'The stars glitter in the dark sky.',meaning:'to shine with many small flashes of light',wrong:['sink','grow','sleep']},
+];
+
+function mkVocabDE(rounds=8){
+  return shuffle(VOCAB_DE).slice(0,rounds).map(v=>{
+    const ch=shuffle([{l:v.meaning},...v.wrong.map(w=>({l:w}))]);
+    return{type:'vocab',q:`Was bedeutet "${v.word}"?`,word:v.word,pos:v.pos,
+      example:v.example,ch,ok:v.meaning};
+  });
+}
+function mkVocabFillDE(rounds=8){
+  return shuffle(VOCAB_DE).slice(0,rounds).map(v=>{
+    const gapped=v.example.replace(v.word,`____`);
+    const ch=shuffle([{l:v.word},...v.wrong.slice(0,3).map(w=>({l:w}))]);
+    return{type:'vocab',q:`Welches Wort passt in die Lücke?`,word:'____',pos:'',
+      example:gapped,ch,ok:v.word};
+  });
+}
+function mkVocabEN(rounds=8){
+  return shuffle(VOCAB_EN).slice(0,rounds).map(v=>{
+    const ch=shuffle([{l:v.meaning},...v.wrong.map(w=>({l:w}))]);
+    return{type:'vocab',q:`What does "${v.word}" mean?`,word:v.word,pos:v.pos,
+      example:v.example,ch,ok:v.meaning};
+  });
+}
+function mkVocabFillEN(rounds=8){
+  return shuffle(VOCAB_EN).slice(0,rounds).map(v=>{
+    const gapped=v.example.replace(v.word,`____`);
+    const ch=shuffle([{l:v.word},...v.wrong.slice(0,3).map(w=>({l:w}))]);
+    return{type:'vocab',q:`Which word fits the gap?`,word:'____',pos:'',
+      example:gapped,ch,ok:v.word};
+  });
+}
+
 // ═══════════════════════════════════════════
 // CHECK ANSWER (Lernpsychologie: Growth Mindset + Fehlerkultur)
 // ═══════════════════════════════════════════
