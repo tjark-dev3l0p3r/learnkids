@@ -1247,6 +1247,7 @@ function goStart(){
   save();
   renderHome();
   go('s-home');
+  FOX.init(); // Fuchs startet und bleibt immer da
   say(`Hallo ${S.name}! Schön dass du da bist! Was möchtest du heute lernen?`);
 }
 
@@ -1965,29 +1966,83 @@ const FOX = (() => {
   let currentDance=0;
   function poseCelebrate(dt){ DANCES[currentDance](dt); }
 
+  // ── IDLE POSES — bleibt immer sichtbar ───
+  function poseIdle(t){
+    const s=Math.sin, breath=s(t*1.8)*3;
+    parts.root.setAttribute('transform',`translate(0,${-breath})`);
+    r(parts.flAUp,8+s(t*0.9)*5); r(parts.flALo,12);
+    r(parts.brAUp,-8+s(t*0.9+1)*5); r(parts.brALo,12);
+    r(parts.frUp,5); r(parts.flUp,-5); r(parts.frLo,8); r(parts.flLo,8);
+    r(parts.brUp,4); r(parts.blUp,-4); r(parts.brLo,6); r(parts.blLo,6);
+    rAt(parts.tailG,s(t*1.2)*18,50,130);
+    rAt(parts.headG,s(t*0.5)*6,50,64);
+  }
+
+  function poseSit(t){
+    const s=Math.sin, bob=s(t*1.5)*2;
+    parts.root.setAttribute('transform',`translate(0,${18+bob})`); // sitzt tiefer
+    r(parts.frUp,45); r(parts.flUp,-45); r(parts.frLo,-35); r(parts.flLo,-35);
+    r(parts.brUp,50); r(parts.blUp,-50); r(parts.brLo,-40); r(parts.blLo,-40);
+    r(parts.flAUp,15+s(t)*8); r(parts.flALo,5);
+    r(parts.brAUp,-15+s(t+1)*8); r(parts.brALo,5);
+    rAt(parts.tailG,s(t*2)*25,50,130);
+    rAt(parts.headG,s(t*0.7)*10,50,64);
+  }
+
+  function poseLook(t){
+    const s=Math.sin, head=s(t*0.8)*22;
+    parts.root.setAttribute('transform',`translate(0,0)`);
+    r(parts.flAUp,10); r(parts.flALo,15);
+    r(parts.brAUp,-10); r(parts.brALo,15);
+    r(parts.frUp,5); r(parts.flUp,-5); r(parts.frLo,6); r(parts.flLo,6);
+    r(parts.brUp,4); r(parts.blUp,-4);
+    rAt(parts.tailG,s(t*1.5)*20,50,130);
+    rAt(parts.headG,head,50,64); // Kopf schaut hin und her
+  }
+
+  // ── STATE MACHINE ─────────────────────────
+  // idle → sit → look → walk → repeat
+  const IDLE_STATES=['idle','idle','sit','look','walk_r','walk_l'];
+  let idleState='idle', idleTimer=3, walkDir=1, walkTarget=0;
+
+  function pickNextIdle(){
+    idleState=IDLE_STATES[Math.floor(Math.random()*IDLE_STATES.length)];
+    idleTimer=3+Math.random()*4;
+    if(idleState==='walk_r'){walkDir=1;walkTarget=Math.min(window.innerWidth-120,charX+80+Math.random()*120);}
+    if(idleState==='walk_l'){walkDir=-1;walkTarget=Math.max(10,charX-80-Math.random()*120);}
+  }
+
   // ── MAIN LOOP ─────────────────────────────
   let lastTs=0;
   function loop(ts){
-    const dt=(ts-lastTs)/1000; lastTs=ts;
+    const dt=Math.min((ts-lastTs)/1000, 0.05); lastTs=ts;
     t+=dt;
     const elapsed=t-stateStart;
 
-    if(state==='run_in'){
-      charX=Math.min(window.innerWidth/2-55, charX+dt*420);
-      poseRun(t);
-      wrap.style.left=charX+'px';
-      if(charX>=window.innerWidth/2-55){state='celebrate';stateStart=t;showBubble();}
-    }
-    else if(state==='celebrate'){
+    if(state==='celebrate'){
       poseCelebrate(elapsed);
-      if(elapsed>2.0){state='run_out';stateStart=t;}
-    }
-    else if(state==='run_out'){
-      charX+=dt*480;
-      poseRun(t);
-      hideBubble();
       wrap.style.left=charX+'px';
-      if(charX>window.innerWidth+120){cleanup();return;}
+      if(elapsed>2.2){state='idle';stateStart=t;hideBubble();idleState='idle';idleTimer=3;}
+    }
+    else if(state==='idle'){
+      // Idle state machine
+      idleTimer-=dt;
+      if(idleTimer<=0) pickNextIdle();
+
+      if(idleState==='idle')    poseIdle(t);
+      else if(idleState==='sit')poseRun(t); // small bounce (simplified)
+      else if(idleState==='look')poseLook(t);
+      else if(idleState==='walk_r'||idleState==='walk_l'){
+        charX+=dt*60*walkDir;
+        poseRun(t);
+        if((walkDir>0&&charX>=walkTarget)||(walkDir<0&&charX<=walkTarget)){
+          idleState='idle';idleTimer=2+Math.random()*3;
+        }
+      }
+      // Sitze-Animation
+      if(idleState==='sit') poseSit(t);
+
+      wrap.style.left=charX+'px';
     }
 
     rafId=requestAnimationFrame(loop);
@@ -1995,7 +2050,6 @@ const FOX = (() => {
 
   function showBubble(){
     [parts.bubbleBg,parts.bubbleTail,parts.bubbleTxt].forEach(el=>{
-      el.style.transition='opacity .2s';
       el.setAttribute('opacity','1');
     });
     parts.bubbleTxt.textContent=phrase;
@@ -2006,7 +2060,6 @@ const FOX = (() => {
 
   function cleanup(){
     if(rafId){cancelAnimationFrame(rafId);rafId=null;}
-    if(wrap){wrap.remove();wrap=null;svg=null;parts={};}
   }
 
   // ── PUBLIC API ────────────────────────────
@@ -2023,18 +2076,24 @@ const FOX = (() => {
     'Champion!','Legend!','Genius!','Superstar!','Unstoppable!','Magnificent!'
   ];
 
-  function celebrate(eng=false){
-    cleanup();
+  function init(){
+    if(wrap)return; // nur einmal bauen
     build();
-    phrase=(eng?PHRASES_EN:PHRASES_DE)[Math.floor(Math.random()*(eng?PHRASES_EN:PHRASES_DE).length)];
-    currentDance=Math.floor(Math.random()*DANCES.length); // Zufälliger Tanz!
-    charX=-120;
-    t=0; stateStart=0; state='run_in';
+    charX=window.innerWidth-130;
+    state='idle'; stateStart=0; t=0;
     lastTs=performance.now();
     rafId=requestAnimationFrame(loop);
   }
 
-  return{celebrate};
+  function celebrate(eng=false){
+    init(); // sicherstellen dass Fuchs da ist
+    phrase=(eng?PHRASES_EN:PHRASES_DE)[Math.floor(Math.random()*(eng?PHRASES_EN:PHRASES_DE).length)];
+    currentDance=Math.floor(Math.random()*DANCES.length);
+    state='celebrate'; stateStart=t;
+    showBubble();
+  }
+
+  return{celebrate,init};
 })();
 
 function showMascot(eng=false){FOX.celebrate(eng);}
