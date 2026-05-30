@@ -448,13 +448,63 @@ footer span { color: var(--amber); }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .hero-title { font-size: 2.4rem; }
+  /* Nav */
+  nav { padding: 10px 18px; }
+  .nav-logo { font-size: 1.25rem; gap: 7px; }
+  .nav-links a:not(.nav-cta) { display: none; }
+  .nav-cta { padding: 8px 18px; font-size: .82rem !important; }
+
+  /* Hero */
+  .hero { padding: 72px 20px 40px; min-height: auto; }
+  .hero-badge { font-size: .74rem; padding: 5px 14px; margin-bottom: 14px; }
+  .hero-title { font-size: 2.1rem; margin-bottom: 12px; }
+  .hero-sub { font-size: .95rem; margin-bottom: 24px; line-height: 1.6; }
   .hero-owl { display: none; }
-  .feat-grid { grid-template-columns: 1fr; }
-  .stats { gap: 28px; }
-  nav { padding: 14px 20px; }
-  section { padding: 60px 20px; }
+  .hero-stars { font-size: 1.4rem; }
+  .btn-primary { padding: 13px 26px; font-size: .95rem; width: 100%; text-align: center; }
+  .btn-secondary { padding: 11px 22px; font-size: .88rem; width: 100%; text-align: center; }
+  .hero-buttons { flex-direction: column; gap: 10px; }
+
+  /* Stats */
+  .stats { padding: 20px 16px; gap: 16px; }
+  .stat-num { font-size: 1.6rem; }
+  .stat-label { font-size: .72rem; }
+
+  /* Sections */
+  section { padding: 50px 18px; }
+  .section-title { font-size: 1.8rem; }
+  .section-sub { font-size: .9rem; }
+
+  /* How */
+  .how-grid { grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 32px; }
+  .how-card { padding: 24px 16px; }
+  .how-icon { font-size: 2rem; margin-bottom: 10px; }
+  .how-card h3 { font-size: 1rem; }
+  .how-card p { font-size: .8rem; }
+
+  /* Features */
+  .feat-grid { grid-template-columns: 1fr; gap: 28px; }
+  .feat-visual { order: -1; }
+  .feat-item { padding: 14px 16px; gap: 12px; }
+  .feat-icon { width: 42px; height: 42px; font-size: 1.5rem; }
+
+  /* AI Tutor */
+  .chat-demo { padding: 20px 16px; }
+
+  /* Pricing */
+  .price-cards { flex-direction: column; align-items: center; }
+  .price-card { width: 100%; max-width: 340px; }
   .price-card.featured { transform: none; }
+
+  /* Subjects */
+  .subj-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .subj-card { padding: 16px 8px; border-radius: 14px; }
+  .subj-icon { font-size: 1.8rem; margin-bottom: 6px; }
+  .subj-name { font-size: .75rem; }
+
+  /* CTA */
+  .cta-title { font-size: 2rem; }
+  .cta-sub { font-size: .95rem; }
 }
 </style>
 </head>
@@ -477,6 +527,11 @@ footer span { color: var(--amber); }
   <div class="hero-fireflies" id="fireflies"></div>
   <div class="hero-content">
     <div class="hero-badge">🌟 Neu: KI-Tutor für Kinder</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="height:2px;width:32px;background:rgba(255,255,255,.3);border-radius:2px"></div>
+      <span style="color:rgba(255,255,255,.5);font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Für Klasse 1–4</span>
+      <div style="height:2px;width:32px;background:rgba(255,255,255,.3);border-radius:2px"></div>
+    </div>
     <h1 class="hero-title">Lernen im<br><span class="highlight">Zauberwald</span></h1>
     <p class="hero-sub">Der persönliche KI-Nachhilfelehrer für Kinder von 6–10 Jahren. Spielerisch, adaptiv und halb so teuer wie die Konkurrenz.</p>
     <div class="hero-buttons">
