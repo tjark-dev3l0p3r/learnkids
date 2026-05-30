@@ -1505,7 +1505,7 @@ function starBurst(){
 }
 
 // ══════════════════════════════════════════════
-// 3. FUCHS-CHARAKTER — 14 Körperteile, echte Animation
+// 3. FUCHS — ROOT-GRUPPE, NIE CSS-TRANSFORMS
 // ══════════════════════════════════════════════
 const FOX = (() => {
   const NS = 'http://www.w3.org/2000/svg';
@@ -1527,16 +1527,16 @@ const FOX = (() => {
 
   function build(){
     wrap=document.createElement('div');
-    wrap.style.cssText='position:fixed;bottom:0;left:-120px;z-index:9995;pointer-events:none;transition:none';
+    wrap.style.cssText='position:fixed;bottom:0;left:-120px;z-index:9995;pointer-events:none';
     document.body.appendChild(wrap);
 
     svg=e('svg',{viewBox:'0 0 100 170',width:'110',height:'170',
-      style:'overflow:visible;filter:drop-shadow(2px 4px 6px rgba(0,0,0,0.3))'},wrap);
+      style:'overflow:visible;filter:drop-shadow(2px 4px 6px rgba(0,0,0,0.25))'},wrap);
 
-    // Shadow
-    parts.shadow=e('ellipse',{cx:'50',cy:'162',rx:'30',ry:'7',fill:C.shadow},svg);
+    // Shadow (stays in svg, not in root)
+    parts.shadow=e('ellipse',{cx:'50',cy:'162',rx:'28',ry:'6',fill:C.shadow},svg);
 
-    // Speech bubble (hidden initially)
+    // Speech bubble (stays in svg so it doesn't move with bob)
     parts.bubbleG=g({transform:'translate(50,10)'},svg);
     parts.bubbleBg=e('rect',{x:'-45',y:'-22',width:'90',height:'36',rx:'12',
       fill:'#fff',stroke:'#ddd','stroke-width':'2',opacity:'0'},parts.bubbleG);
@@ -1545,187 +1545,425 @@ const FOX = (() => {
       'font-family':'Baloo 2,cursive','font-weight':'900','font-size':'13',
       fill:'#2d5a27',opacity:'0'},parts.bubbleG);
 
-    // TAIL (behind body) — bezier path
-    parts.tailG=g({},svg);
-    parts.tailPath=e('path',{d:'M 50 130 Q 20 115 18 90 Q 16 68 35 62',
+    // ROOT GROUP — alle Körperteile hier drin, nur root bewegt sich
+    // Augen sind in headG, headG ist in root → Augen bewegen sich NIE separat
+    parts.root=g({},svg);
+    const R=parts.root;
+
+    // TAIL
+    parts.tailG=g({},R);
+    e('path',{d:'M 50 130 Q 20 115 18 90 Q 16 68 35 62',
       stroke:C.fur,'stroke-width':'16',fill:'none','stroke-linecap':'round'},parts.tailG);
-    parts.tailTip=e('path',{d:'M 50 130 Q 20 115 18 90 Q 16 70 37 64',
+    e('path',{d:'M 50 130 Q 20 115 18 90 Q 16 70 37 64',
       stroke:C.tail_tip,'stroke-width':'7',fill:'none','stroke-linecap':'round'},parts.tailG);
 
-    // BACK RIGHT LEG (darker, behind)
-    parts.brLegG=g({},svg);
-    const brUp=g({},parts.brLegG); parts.brUp=brUp;
-    e('rect',{x:'-7',y:'0',width:'14',height:'28',rx:'7',fill:C.dark},brUp);
-    const brLo=g({transform:'translate(0,22)'},brUp); parts.brLo=brLo;
-    e('rect',{x:'-6',y:'0',width:'12',height:'24',rx:'6',fill:C.dark},brLo);
-    e('ellipse',{cx:'3',cy:'24',rx:'10',ry:'5',fill:C.dark},brLo);
+    // BACK RIGHT LEG
+    parts.brLegG=g({transform:'translate(60,132)'},R);
+    parts.brUp=g({},parts.brLegG);
+    e('rect',{x:'-7',y:'0',width:'14',height:'28',rx:'7',fill:C.dark},parts.brUp);
+    parts.brLo=g({transform:'translate(0,22)'},parts.brUp);
+    e('rect',{x:'-6',y:'0',width:'12',height:'24',rx:'6',fill:C.dark},parts.brLo);
+    e('ellipse',{cx:'3',cy:'24',rx:'10',ry:'5',fill:C.dark},parts.brLo);
 
     // BACK LEFT LEG
-    parts.blLegG=g({},svg);
-    const blUp=g({},parts.blLegG); parts.blUp=blUp;
-    e('rect',{x:'-7',y:'0',width:'14',height:'28',rx:'7',fill:C.dark},blUp);
-    const blLo=g({transform:'translate(0,22)'},blUp); parts.blLo=blLo;
-    e('rect',{x:'-6',y:'0',width:'12',height:'24',rx:'6',fill:C.dark},blLo);
-    e('ellipse',{cx:'-3',cy:'24',rx:'10',ry:'5',fill:C.dark},blLo);
+    parts.blLegG=g({transform:'translate(40,132)'},R);
+    parts.blUp=g({},parts.blLegG);
+    e('rect',{x:'-7',y:'0',width:'14',height:'28',rx:'7',fill:C.dark},parts.blUp);
+    parts.blLo=g({transform:'translate(0,22)'},parts.blUp);
+    e('rect',{x:'-6',y:'0',width:'12',height:'24',rx:'6',fill:C.dark},parts.blLo);
+    e('ellipse',{cx:'-3',cy:'24',rx:'10',ry:'5',fill:C.dark},parts.blLo);
 
     // BODY
-    parts.bodyG=g({},svg);
-    e('ellipse',{cx:'50',cy:'105',rx:'24',ry:'32',fill:C.fur},parts.bodyG);
-    e('ellipse',{cx:'50',cy:'112',rx:'14',ry:'20',fill:C.belly},parts.bodyG);
+    e('ellipse',{cx:'50',cy:'105',rx:'24',ry:'32',fill:C.fur},R);
+    e('ellipse',{cx:'50',cy:'112',rx:'14',ry:'20',fill:C.belly},R);
 
-    // BACK RIGHT ARM
-    parts.brArmG=g({},svg);
-    const brAUp=g({},parts.brArmG); parts.brAUp=brAUp;
-    e('rect',{x:'-6',y:'0',width:'12',height:'26',rx:'6',fill:C.dark},brAUp);
-    const brALo=g({transform:'translate(0,20)'},brAUp); parts.brALo=brALo;
-    e('rect',{x:'-5',y:'0',width:'10',height:'20',rx:'5',fill:C.dark},brALo);
-    e('ellipse',{cx:'0',cy:'20',rx:'7',ry:'5',fill:C.belly},brALo);
+    // BACK RIGHT ARM — pivot at shoulder (74, 93)
+    parts.brArmG=g({transform:'translate(74,93)'},R);
+    parts.brAUp=g({},parts.brArmG);
+    e('rect',{x:'-6',y:'0',width:'12',height:'26',rx:'6',fill:C.dark},parts.brAUp);
+    parts.brALo=g({transform:'translate(0,20)'},parts.brAUp);
+    e('rect',{x:'-5',y:'0',width:'10',height:'20',rx:'5',fill:C.dark},parts.brALo);
+    e('ellipse',{cx:'0',cy:'20',rx:'7',ry:'5',fill:C.belly},parts.brALo);
 
-    // HEAD
-    parts.headG=g({},svg);
-    // Head circle
+    // HEAD — KEIN TRANSFORM je auf headG anwenden! Kinder (Augen) bleiben drin.
+    parts.headG=g({},R);
     e('circle',{cx:'50',cy:'64',r:'24',fill:C.fur},parts.headG);
-    // Ears
     e('polygon',{points:'30,50 26,28 42,48',fill:C.fur},parts.headG);
     e('polygon',{points:'31,49 28,33 40,47',fill:C.dark},parts.headG);
     e('polygon',{points:'70,50 74,28 58,48',fill:C.fur},parts.headG);
     e('polygon',{points:'69,49 72,33 60,47',fill:C.dark},parts.headG);
-    // Snout area
     e('ellipse',{cx:'50',cy:'72',rx:'13',ry:'11',fill:C.belly},parts.headG);
-    // Eyes
-    const eyeL=g({transform:'translate(40,60)'},parts.headG);
-    parts.eyeL=eyeL;
-    e('circle',{cx:'0',cy:'0',r:'6',fill:C.white},eyeL);
-    parts.pupilL=e('circle',{cx:'0',cy:'0',r:'3.5',fill:C.pupil},eyeL);
-    e('circle',{cx:'1.5',cy:'-1.5',r:'1.2',fill:C.white},eyeL);
-    const eyeR=g({transform:'translate(60,60)'},parts.headG);
-    parts.eyeR=eyeR;
-    e('circle',{cx:'0',cy:'0',r:'6',fill:C.white},eyeR);
-    parts.pupilR=e('circle',{cx:'0',cy:'0',r:'3.5',fill:C.pupil},eyeR);
-    e('circle',{cx:'1.5',cy:'-1.5',r:'1.2',fill:C.white},eyeR);
-    // Cheeks
+    // Augen als direkte Shapes (keine sub-groups = kein extra transform)
+    e('circle',{cx:'40',cy:'60',r:'6',fill:C.white},parts.headG);
+    e('circle',{cx:'40',cy:'60',r:'3.5',fill:C.pupil},parts.headG);
+    e('circle',{cx:'41.5',cy:'58.5',r:'1.2',fill:C.white},parts.headG);
+    e('circle',{cx:'60',cy:'60',r:'6',fill:C.white},parts.headG);
+    e('circle',{cx:'60',cy:'60',r:'3.5',fill:C.pupil},parts.headG);
+    e('circle',{cx:'61.5',cy:'58.5',r:'1.2',fill:C.white},parts.headG);
     e('circle',{cx:'36',cy:'68',r:'6',fill:C.cheek},parts.headG);
     e('circle',{cx:'64',cy:'68',r:'6',fill:C.cheek},parts.headG);
-    // Nose
     e('ellipse',{cx:'50',cy:'73',rx:'4',ry:'3',fill:C.nose},parts.headG);
-    // Mouth
     e('path',{d:'M 45 78 Q 50 83 55 78',stroke:C.outline,'stroke-width':'2',
       fill:'none','stroke-linecap':'round'},parts.headG);
 
-    // FRONT LEFT ARM
-    parts.flArmG=g({},svg);
-    const flAUp=g({},parts.flArmG); parts.flAUp=flAUp;
-    e('rect',{x:'-6',y:'0',width:'12',height:'26',rx:'6',fill:C.fur},flAUp);
-    const flALo=g({transform:'translate(0,20)'},flAUp); parts.flALo=flALo;
-    e('rect',{x:'-5',y:'0',width:'10',height:'20',rx:'5',fill:C.fur},flALo);
-    e('ellipse',{cx:'0',cy:'20',rx:'7',ry:'5',fill:C.belly},flALo);
+    // FRONT LEFT ARM — pivot at shoulder (26, 93)
+    parts.flArmG=g({transform:'translate(26,93)'},R);
+    parts.flAUp=g({},parts.flArmG);
+    e('rect',{x:'-6',y:'0',width:'12',height:'26',rx:'6',fill:C.fur},parts.flAUp);
+    parts.flALo=g({transform:'translate(0,20)'},parts.flAUp);
+    e('rect',{x:'-5',y:'0',width:'10',height:'20',rx:'5',fill:C.fur},parts.flALo);
+    e('ellipse',{cx:'0',cy:'20',rx:'7',ry:'5',fill:C.belly},parts.flALo);
 
-    // FRONT RIGHT LEG (front, brighter)
-    parts.frLegG=g({},svg);
-    const frUp=g({},parts.frLegG); parts.frUp=frUp;
-    e('rect',{x:'-7',y:'0',width:'14',height:'28',rx:'7',fill:C.fur},frUp);
-    const frLo=g({transform:'translate(0,22)'},frUp); parts.frLo=frLo;
-    e('rect',{x:'-6',y:'0',width:'12',height:'24',rx:'6',fill:C.fur},frLo);
-    e('ellipse',{cx:'3',cy:'24',rx:'10',ry:'5',fill:C.belly},frLo);
+    // FRONT RIGHT LEG — pivot at hip (63, 132)
+    parts.frLegG=g({transform:'translate(63,132)'},R);
+    parts.frUp=g({},parts.frLegG);
+    e('rect',{x:'-7',y:'0',width:'14',height:'28',rx:'7',fill:C.fur},parts.frUp);
+    parts.frLo=g({transform:'translate(0,22)'},parts.frUp);
+    e('rect',{x:'-6',y:'0',width:'12',height:'24',rx:'6',fill:C.fur},parts.frLo);
+    e('ellipse',{cx:'3',cy:'24',rx:'10',ry:'5',fill:C.belly},parts.frLo);
 
-    // FRONT LEFT LEG
-    parts.flLegG=g({},svg);
-    const flUp=g({},parts.flLegG); parts.flUp=flUp;
-    e('rect',{x:'-7',y:'0',width:'14',height:'28',rx:'7',fill:C.fur},flUp);
-    const flLo=g({transform:'translate(0,22)'},flUp); parts.flLo=flLo;
-    e('rect',{x:'-6',y:'0',width:'12',height:'24',rx:'6',fill:C.fur},flLo);
-    e('ellipse',{cx:'-3',cy:'24',rx:'10',ry:'5',fill:C.belly},flLo);
+    // FRONT LEFT LEG — pivot at hip (37, 132)
+    parts.flLegG=g({transform:'translate(37,132)'},R);
+    parts.flUp=g({},parts.flLegG);
+    e('rect',{x:'-7',y:'0',width:'14',height:'28',rx:'7',fill:C.fur},parts.flUp);
+    parts.flLo=g({transform:'translate(0,22)'},parts.flUp);
+    e('rect',{x:'-6',y:'0',width:'12',height:'24',rx:'6',fill:C.fur},parts.flLo);
+    e('ellipse',{cx:'-3',cy:'24',rx:'10',ry:'5',fill:C.belly},parts.flLo);
   }
 
-  // ── SVG TRANSFORM HELPER — KEIN CSS, nur setAttribute ──
-  // rotate(deg, pivotX, pivotY) ist das sicherste Format in SVG
-  function tr(el, tx, ty, rot=0){ el.setAttribute('transform',`translate(${tx},${ty}) rotate(${rot})`); }
-  function rotAround(el, deg, px, py){ el.setAttribute('transform',`rotate(${deg},${px},${py})`); }
+  // ── NUR SVG setAttribute — kein CSS ──────
+  // r(el, deg) rotiert el um seinen eigenen Ursprung
+  function r(el,deg){ el.setAttribute('transform',`rotate(${deg})`); }
+  // rAt(el, deg, px, py) rotiert um fixen Punkt
+  function rAt(el,deg,px,py){ el.setAttribute('transform',`rotate(${deg},${px},${py})`); }
 
-  // ── RUNNING POSE ──────────────────────────
+  // ── RUNNING POSE — root trägt alles ──────
   function poseRun(t){
     const s=Math.sin, spd=t*5.5;
-    const legA=28, armA=22, bend=16;
-    const bob=Math.abs(s(spd*2))*3;
+    const LA=26, AA=20, K=14;
+    const bob=Math.abs(s(spd*2))*4;
 
-    // Hüfte-Position (Körper wippt leicht)
-    const bodyY=105+bob;
-    tr(parts.bodyG, 0, -bob);
-    tr(parts.headG, 0, -bob-2);
+    // ROOT verschiebt alles nach oben/unten (bob) — Augen bewegen sich MIT
+    parts.root.setAttribute('transform',`translate(0,${-bob})`);
 
-    // Beine — diagonal: FR+BL gleiche Phase, FL+BR entgegen
-    const frA=s(spd)*legA,  blA=s(spd)*legA;
-    const flA=s(spd+Math.PI)*legA, brA=s(spd+Math.PI)*legA;
-    // Knie-Beugung (immer positiv = nach vorne gebogen)
-    const frK=Math.max(0,s(spd+0.5))*bend;
-    const flK=Math.max(0,s(spd+Math.PI+0.5))*bend;
+    // Beine rotieren um ihren lokalen Ursprung (0,0 = Hüftpunkt)
+    r(parts.frUp, s(spd)*LA);
+    r(parts.frLo, Math.max(0,s(spd+0.5))*K);
+    r(parts.flUp, s(spd+Math.PI)*LA);
+    r(parts.flLo, Math.max(0,s(spd+Math.PI+0.5))*K);
+    r(parts.brUp, s(spd+Math.PI)*LA);
+    r(parts.brLo, Math.max(0,s(spd+0.5))*K);
+    r(parts.blUp, s(spd)*LA);
+    r(parts.blLo, Math.max(0,s(spd+Math.PI+0.5))*K);
 
-    tr(parts.frLegG, 63, 132);
-    rotAround(parts.frUp,  frA, 7, 0);
-    rotAround(parts.frLo,  frK, 6, 0);
+    // Arme
+    r(parts.flAUp, s(spd+Math.PI)*AA);
+    r(parts.flALo, 8);
+    r(parts.brAUp, s(spd)*AA);
+    r(parts.brALo, 8);
 
-    tr(parts.flLegG, 37, 132);
-    rotAround(parts.flUp,  flA, 7, 0);
-    rotAround(parts.flLo,  flK, 6, 0);
+    // Schwanz — rotiert um seinen Verbindungspunkt mit dem Körper
+    rAt(parts.tailG, s(spd-0.5)*20, 50, 130);
 
-    tr(parts.brLegG, 60, 132);
-    rotAround(parts.brUp,  brA, 7, 0);
-    rotAround(parts.brLo,  Math.max(0,s(spd+0.5))*bend, 6, 0);
-
-    tr(parts.blLegG, 40, 132);
-    rotAround(parts.blUp,  blA, 7, 0);
-    rotAround(parts.blLo,  Math.max(0,s(spd+Math.PI+0.5))*bend, 6, 0);
-
-    // Arme — gegenläufig zu Beinen
-    tr(parts.flArmG, 26, 90-bob);
-    rotAround(parts.flAUp, s(spd+Math.PI)*armA, 6, 0);
-    rotAround(parts.flALo, 8, 5, 0);
-
-    tr(parts.brArmG, 74, 90-bob);
-    rotAround(parts.brAUp, s(spd)*armA, 6, 0);
-    rotAround(parts.brALo, 8, 5, 0);
-
-    // Schwanz wedelt
-    rotAround(parts.tailG, s(spd-0.5)*22, 50, 130);
-
-    // Kopf nickt leicht
-    rotAround(parts.headG, s(spd*2)*3, 50, 64);
-    tr(parts.headG, 0, -bob-2);
+    // Kopf — leichtes Nicken, rotiert um Kopf-Mitte (50,64)
+    // headG ist Kind von root, erhält KEINE eigene Verschiebung
+    rAt(parts.headG, s(spd*2)*3, 50, 64);
   }
 
-  // ── CELEBRATE POSE ────────────────────────
-  function poseCelebrate(dt){
-    const s=Math.sin, vt=dt*4;
-    const bounce=Math.abs(s(vt*2))*22;
+  // ── 25 VERSCHIEDENE CELEBRATIONS ─────────
+  // Jede nimmt dt (elapsed) und animiert anders
+  const DANCES=[
+    // 0: Klassisch — Arme hoch abwechselnd
+    (dt)=>{
+      const s=Math.sin,v=dt*4,b=Math.abs(s(v*2))*20;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,s(v)*60-30); r(parts.flALo,s(v)*20);
+      r(parts.brAUp,s(v+Math.PI)*60-30); r(parts.brALo,s(v+Math.PI)*20);
+      r(parts.frUp,s(v*2)*15); r(parts.flUp,-s(v*2)*15);
+      r(parts.brUp,s(v*2)*10); r(parts.blUp,-s(v*2)*10);
+      rAt(parts.tailG,s(v*3)*45,50,130);
+      rAt(parts.headG,s(v*1.2)*12,50,64);
+    },
+    // 1: Hüft-Wackeln
+    (dt)=>{
+      const s=Math.sin,v=dt*5,b=Math.abs(s(v))*10;
+      parts.root.setAttribute('transform',`translate(${s(v*2)*6},${-b})`);
+      r(parts.flAUp,-30+s(v)*15); r(parts.brAUp,-30+s(v+Math.PI)*15);
+      r(parts.frUp,s(v)*20); r(parts.flUp,-s(v)*20);
+      r(parts.brUp,-s(v)*10); r(parts.blUp,s(v)*10);
+      r(parts.flALo,10); r(parts.brALo,10);
+      rAt(parts.tailG,s(v*2.5)*50,50,130);
+      rAt(parts.headG,s(v)*8,50,64);
+    },
+    // 2: Beide Arme gleichzeitig hoch — Jubel!
+    (dt)=>{
+      const s=Math.sin,v=dt*3.5,b=Math.abs(s(v*2))*25;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,-60+s(v)*20); r(parts.flALo,-20+s(v)*10);
+      r(parts.brAUp,-60+s(v)*20); r(parts.brALo,-20+s(v)*10);
+      r(parts.frUp,s(v*2)*18); r(parts.flUp,-s(v*2)*18);
+      r(parts.brUp,s(v*2)*10); r(parts.blUp,-s(v*2)*10);
+      rAt(parts.tailG,s(v*4)*55,50,130);
+      rAt(parts.headG,0,50,64);
+    },
+    // 3: Roboter — eckige Bewegungen
+    (dt)=>{
+      const step=Math.floor(dt*4)%4;
+      const b=step%2===0?15:0;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,step===0?-70:step===2?20:0);
+      r(parts.brAUp,step===1?-70:step===3?20:0);
+      r(parts.flALo,step===0?-30:0); r(parts.brALo,step===1?-30:0);
+      r(parts.frUp,step%2===0?25:-25); r(parts.flUp,step%2===0?-25:25);
+      r(parts.brUp,step%2===0?-15:15); r(parts.blUp,step%2===0?15:-15);
+      rAt(parts.tailG,step%2===0?40:-40,50,130);
+      rAt(parts.headG,0,50,64);
+    },
+    // 4: Drehung — Körper dreht sich hin und her
+    (dt)=>{
+      const s=Math.sin,v=dt*3,b=Math.abs(s(v))*18;
+      parts.root.setAttribute('transform',`translate(0,${-b}) rotate(${s(v)*15},50,100)`);
+      r(parts.flAUp,-45); r(parts.brAUp,-45);
+      r(parts.flALo,-20); r(parts.brALo,-20);
+      r(parts.frUp,20); r(parts.flUp,-20);
+      r(parts.brUp,10); r(parts.blUp,-10);
+      rAt(parts.tailG,s(v*2)*60,50,130);
+      rAt(parts.headG,s(v)*10,50,64);
+    },
+    // 5: Welle — arme in Welle nacheinander
+    (dt)=>{
+      const s=Math.sin,v=dt*4,b=Math.abs(s(v*1.5))*16;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,s(v)*70-40); r(parts.flALo,s(v)*30);
+      r(parts.brAUp,s(v+0.8)*70-40); r(parts.brALo,s(v+0.8)*30);
+      r(parts.frUp,s(v*2)*12); r(parts.flUp,-s(v*2)*12);
+      r(parts.brUp,s(v*2)*8); r(parts.blUp,-s(v*2)*8);
+      rAt(parts.tailG,s(v*2)*35,50,130);
+      rAt(parts.headG,s(v*1.5)*10,50,64);
+    },
+    // 6: Power-Jump — hoch springen mit Beine auseinander
+    (dt)=>{
+      const s=Math.sin,v=dt*3,b=Math.abs(s(v))*30;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,-70); r(parts.flALo,-25);
+      r(parts.brAUp,-70); r(parts.brALo,-25);
+      r(parts.frUp,35); r(parts.flUp,-35);
+      r(parts.brUp,25); r(parts.blUp,-25);
+      rAt(parts.tailG,s(v*2)*50,50,130);
+      rAt(parts.headG,s(v)*5,50,64);
+    },
+    // 7: Kopf-Bob — Kopf nickt stark
+    (dt)=>{
+      const s=Math.sin,v=dt*5,b=Math.abs(s(v*2))*10;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,s(v)*25-10); r(parts.brAUp,s(v+Math.PI)*25-10);
+      r(parts.flALo,8); r(parts.brALo,8);
+      r(parts.frUp,s(v)*10); r(parts.flUp,-s(v)*10);
+      r(parts.brUp,0); r(parts.blUp,0);
+      rAt(parts.tailG,s(v*1.5)*30,50,130);
+      rAt(parts.headG,s(v*2)*20,50,64);
+    },
+    // 8: Moonwalk — Beine gleiten alternierend
+    (dt)=>{
+      const s=Math.sin,v=dt*4,b=Math.abs(s(v))*8;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,s(v+Math.PI)*30-15); r(parts.brAUp,s(v)*30-15);
+      r(parts.flALo,20); r(parts.brALo,20);
+      r(parts.frUp,-s(v)*30); r(parts.flUp,s(v)*30);
+      r(parts.brUp,-s(v+Math.PI)*20); r(parts.blUp,s(v+Math.PI)*20);
+      rAt(parts.tailG,s(v*3)*25,50,130);
+      rAt(parts.headG,s(v)*6,50,64);
+    },
+    // 9: Freeze — kurz einfrieren, dann explodieren
+    (dt)=>{
+      const s=Math.sin,v=dt*2;
+      const frozen=Math.floor(dt*3)%3===1;
+      const b=frozen?0:Math.abs(s(v*4))*22;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,frozen?-45:s(v*4)*65-35); r(parts.flALo,frozen?-15:s(v*4)*25);
+      r(parts.brAUp,frozen?-45:s(v*4+Math.PI)*65-35); r(parts.brALo,frozen?-15:s(v*4+Math.PI)*25);
+      r(parts.frUp,frozen?20:s(v*4)*25); r(parts.flUp,frozen?-20:-s(v*4)*25);
+      r(parts.brUp,0); r(parts.blUp,0);
+      rAt(parts.tailG,frozen?30:s(v*5)*55,50,130);
+      rAt(parts.headG,frozen?0:s(v*3)*15,50,64);
+    },
+    // 10: Bauch-Wackeln
+    (dt)=>{
+      const s=Math.sin,v=dt*6,b=Math.abs(s(v))*8;
+      parts.root.setAttribute('transform',`translate(${s(v*3)*5},${-b})`);
+      r(parts.flAUp,-20+s(v)*30); r(parts.brAUp,-20+s(v+Math.PI)*30);
+      r(parts.flALo,12); r(parts.brALo,12);
+      r(parts.frUp,s(v)*12); r(parts.flUp,-s(v)*12);
+      r(parts.brUp,s(v)*8); r(parts.blUp,-s(v)*8);
+      rAt(parts.tailG,s(v*2)*40,50,130);
+      rAt(parts.headG,s(v*3)*6,50,64);
+    },
+    // 11: Bein-Kick
+    (dt)=>{
+      const s=Math.sin,v=dt*4,b=Math.abs(s(v*2))*18;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,-50+s(v)*15); r(parts.brAUp,-50+s(v+Math.PI)*15);
+      r(parts.flALo,-10); r(parts.brALo,-10);
+      r(parts.frUp,s(v)*50); r(parts.flUp,-s(v)*50);
+      r(parts.brUp,Math.abs(s(v))*30); r(parts.blUp,Math.abs(s(v+Math.PI))*30);
+      rAt(parts.tailG,s(v*2)*40,50,130);
+      rAt(parts.headG,s(v)*8,50,64);
+    },
+    // 12: Salsa
+    (dt)=>{
+      const s=Math.sin,v=dt*4.5,b=Math.abs(s(v*1.5))*12;
+      parts.root.setAttribute('transform',`translate(${s(v)*8},${-b})`);
+      r(parts.flAUp,s(v)*50-25); r(parts.flALo,s(v)*20+5);
+      r(parts.brAUp,s(v+1.2)*50-25); r(parts.brALo,s(v+1.2)*20+5);
+      r(parts.frUp,s(v*1.5)*25); r(parts.flUp,-s(v*1.5)*25);
+      r(parts.brUp,-s(v*1.5)*15); r(parts.blUp,s(v*1.5)*15);
+      rAt(parts.tailG,s(v*3)*50,50,130);
+      rAt(parts.headG,s(v*1.8)*12,50,64);
+    },
+    // 13: Fist-Pump
+    (dt)=>{
+      const s=Math.sin,v=dt*5,b=Math.abs(s(v))*20;
+      const pump=s(v)>0;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,pump?-80:-30); r(parts.flALo,pump?-30:-5);
+      r(parts.brAUp,-20+s(v)*15); r(parts.brALo,10);
+      r(parts.frUp,s(v*2)*20); r(parts.flUp,-s(v*2)*20);
+      r(parts.brUp,s(v*2)*12); r(parts.blUp,-s(v*2)*12);
+      rAt(parts.tailG,s(v*3)*45,50,130);
+      rAt(parts.headG,s(v)*6,50,64);
+    },
+    // 14: Spinning-Jump
+    (dt)=>{
+      const s=Math.sin,v=dt*3,b=Math.abs(s(v))*28;
+      const spin=dt*180;
+      parts.root.setAttribute('transform',`translate(0,${-b}) rotate(${spin},50,100)`);
+      r(parts.flAUp,-55); r(parts.brAUp,-55);
+      r(parts.flALo,-20); r(parts.brALo,-20);
+      r(parts.frUp,30); r(parts.flUp,-30);
+      r(parts.brUp,20); r(parts.blUp,-20);
+      rAt(parts.tailG,s(v*3)*60,50,130);
+      rAt(parts.headG,0,50,64);
+    },
+    // 15: Happy-Wiggle — kleines Zittern vor Freude
+    (dt)=>{
+      const s=Math.sin,v=dt*8,b=Math.abs(s(v*0.5))*12;
+      parts.root.setAttribute('transform',`translate(${s(v)*3},${-b})`);
+      r(parts.flAUp,s(v)*40-20); r(parts.brAUp,s(v+Math.PI)*40-20);
+      r(parts.flALo,s(v)*15+5); r(parts.brALo,s(v+Math.PI)*15+5);
+      r(parts.frUp,s(v*0.5)*15); r(parts.flUp,-s(v*0.5)*15);
+      r(parts.brUp,s(v*0.5)*10); r(parts.blUp,-s(v*0.5)*10);
+      rAt(parts.tailG,s(v*1.5)*60,50,130);
+      rAt(parts.headG,s(v*2)*8,50,64);
+    },
+    // 16: Star-Pose — kurz ausbreiten
+    (dt)=>{
+      const s=Math.sin,v=dt*3,b=Math.abs(s(v))*25;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      const open=s(v)>0;
+      r(parts.flAUp,open?-80:-20); r(parts.brAUp,open?-80:-20);
+      r(parts.flALo,open?0:10); r(parts.brALo,open?0:10);
+      r(parts.frUp,open?45:-10); r(parts.flUp,open?-45:10);
+      r(parts.brUp,open?30:-5); r(parts.blUp,open?-30:5);
+      rAt(parts.tailG,s(v*4)*50,50,130);
+      rAt(parts.headG,s(v*2)*10,50,64);
+    },
+    // 17: Running-Man in place
+    (dt)=>{
+      const s=Math.sin,v=dt*7,b=Math.abs(s(v))*6;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,s(v+Math.PI)*35); r(parts.brAUp,s(v)*35);
+      r(parts.flALo,10); r(parts.brALo,10);
+      r(parts.frUp,s(v)*40); r(parts.flUp,s(v+Math.PI)*40);
+      r(parts.brUp,s(v+Math.PI)*25); r(parts.blUp,s(v)*25);
+      r(parts.frLo,Math.max(0,s(v+0.5))*25);
+      r(parts.flLo,Math.max(0,s(v+Math.PI+0.5))*25);
+      rAt(parts.tailG,s(v-0.5)*25,50,130);
+      rAt(parts.headG,s(v*2)*4,50,64);
+    },
+    // 18: Schulter-Shrug
+    (dt)=>{
+      const s=Math.sin,v=dt*4,b=Math.abs(s(v))*14;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,s(v)*20-50); r(parts.brAUp,s(v+Math.PI)*20-50);
+      r(parts.flALo,25); r(parts.brALo,25);
+      r(parts.frUp,s(v)*12); r(parts.flUp,-s(v)*12);
+      r(parts.brUp,s(v)*8); r(parts.blUp,-s(v)*8);
+      rAt(parts.tailG,s(v*2)*35,50,130);
+      rAt(parts.headG,s(v*2)*15,50,64);
+    },
+    // 19: Excited-Hop — schnelle kleine Sprünge
+    (dt)=>{
+      const s=Math.sin,v=dt*7,b=Math.abs(s(v))*15;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,s(v)*45-20); r(parts.brAUp,s(v+Math.PI)*45-20);
+      r(parts.flALo,15); r(parts.brALo,15);
+      r(parts.frUp,s(v*2)*20); r(parts.flUp,-s(v*2)*20);
+      r(parts.brUp,s(v*2)*12); r(parts.blUp,-s(v*2)*12);
+      rAt(parts.tailG,s(v*3.5)*55,50,130);
+      rAt(parts.headG,s(v*3)*10,50,64);
+    },
+    // 20: Twerk — Hüfte kreist
+    (dt)=>{
+      const s=Math.sin,v=dt*5,b=4+Math.abs(s(v))*10;
+      parts.root.setAttribute('transform',`translate(${s(v)*6},${-b}) rotate(${s(v)*8},50,130)`);
+      r(parts.flAUp,-15+s(v)*20); r(parts.brAUp,-15+s(v+Math.PI)*20);
+      r(parts.flALo,12); r(parts.brALo,12);
+      r(parts.frUp,s(v*2)*18); r(parts.flUp,-s(v*2)*18);
+      r(parts.brUp,s(v*2)*12); r(parts.blUp,-s(v*2)*12);
+      rAt(parts.tailG,s(v*3)*50,50,130);
+      rAt(parts.headG,s(v)*10,50,64);
+    },
+    // 21: Cheer — kurz Fäuste ballen, dann hochreißen
+    (dt)=>{
+      const s=Math.sin,v=dt*3.5,b=Math.abs(s(v*1.5))*22;
+      const phase=Math.floor(dt*2)%2;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,phase===0?-10:-70); r(parts.flALo,phase===0?20:-25);
+      r(parts.brAUp,phase===0?-10:-70); r(parts.brALo,phase===0?20:-25);
+      r(parts.frUp,s(v*2)*22); r(parts.flUp,-s(v*2)*22);
+      r(parts.brUp,s(v*2)*14); r(parts.blUp,-s(v*2)*14);
+      rAt(parts.tailG,s(v*4)*50,50,130);
+      rAt(parts.headG,phase===0?10:-5,50,64);
+    },
+    // 22: Bounce+Spin — hüpfen mit halber Drehung
+    (dt)=>{
+      const s=Math.sin,v=dt*2.5,b=Math.abs(s(v))*26;
+      const spin=(Math.floor(dt*1.5)%2)*180;
+      parts.root.setAttribute('transform',`translate(0,${-b}) rotate(${spin},50,100)`);
+      r(parts.flAUp,-60); r(parts.brAUp,-60);
+      r(parts.flALo,-20); r(parts.brALo,-20);
+      r(parts.frUp,28); r(parts.flUp,-28);
+      r(parts.brUp,18); r(parts.blUp,-18);
+      rAt(parts.tailG,s(v*3)*55,50,130);
+      rAt(parts.headG,0,50,64);
+    },
+    // 23: Ballett — sanfte Bewegungen
+    (dt)=>{
+      const s=Math.sin,v=dt*2.5,b=Math.abs(s(v))*18;
+      parts.root.setAttribute('transform',`translate(0,${-b})`);
+      r(parts.flAUp,s(v)*45-60); r(parts.flALo,s(v)*15);
+      r(parts.brAUp,s(v+1)*45-60); r(parts.brALo,s(v+1)*15);
+      r(parts.frUp,s(v*0.8)*25); r(parts.flUp,-s(v*0.8)*25);
+      r(parts.brUp,s(v*0.8)*18); r(parts.blUp,-s(v*0.8)*18);
+      rAt(parts.tailG,s(v*1.5)*30,50,130);
+      rAt(parts.headG,s(v*0.8)*10,50,64);
+    },
+    // 24: Mega-Celebration — alle moves zusammen!
+    (dt)=>{
+      const s=Math.sin,v=dt*4,b=Math.abs(s(v*2.5))*28;
+      const spin=s(v*0.5)*20;
+      parts.root.setAttribute('transform',`translate(${s(v*3)*5},${-b}) rotate(${spin},50,100)`);
+      r(parts.flAUp,s(v)*70-40); r(parts.flALo,s(v)*30);
+      r(parts.brAUp,s(v+Math.PI)*70-40); r(parts.brALo,s(v+Math.PI)*30);
+      r(parts.frUp,s(v*2)*35); r(parts.flUp,-s(v*2)*35);
+      r(parts.brUp,s(v*2)*20); r(parts.blUp,-s(v*2)*20);
+      rAt(parts.tailG,s(v*4)*65,50,130);
+      rAt(parts.headG,s(v*2.5)*18,50,64);
+    },
+  ];
 
-    // Körper springt — nur translate, kein scale (vermeidet Augen-Drift)
-    tr(parts.bodyG, 0, -bounce);
-    tr(parts.headG, 0, -bounce-3);
-
-    // Arme hoch schwingen — abwechselnd
-    const aL=s(vt)*55-20, aR=s(vt+Math.PI)*55-20;
-    tr(parts.flArmG, 24, 90-bounce);
-    rotAround(parts.flAUp, aL, 6, 0);
-    rotAround(parts.flALo, aL*0.4+5, 5, 0);
-
-    tr(parts.brArmG, 76, 90-bounce);
-    rotAround(parts.brAUp, aR, 6, 0);
-    rotAround(parts.brALo, aR*0.4+5, 5, 0);
-
-    // Beine spreizen
-    const ls=s(vt*2)*18;
-    tr(parts.frLegG, 63, 132); rotAround(parts.frUp,  ls, 7, 0); rotAround(parts.frLo, 8, 6, 0);
-    tr(parts.flLegG, 37, 132); rotAround(parts.flUp, -ls, 7, 0); rotAround(parts.flLo, 8, 6, 0);
-    tr(parts.brLegG, 60, 132); rotAround(parts.brUp,  ls*0.5, 7, 0); rotAround(parts.brLo, 0, 6, 0);
-    tr(parts.blLegG, 40, 132); rotAround(parts.blUp, -ls*0.5, 7, 0); rotAround(parts.blLo, 0, 6, 0);
-
-    // Kopf wackelt — rotate um Kopf-Mittelpunkt
-    rotAround(parts.headG, s(vt*1.3)*14, 50, 64);
-    tr(parts.headG, 0, -bounce-3);
-
-    // Schwanz wedelt wild
-    rotAround(parts.tailG, s(vt*2.8)*40, 50, 130);
-  }
+  let currentDance=0;
+  function poseCelebrate(dt){ DANCES[currentDance](dt); }
 
   // ── MAIN LOOP ─────────────────────────────
   let lastTs=0;
@@ -1789,6 +2027,7 @@ const FOX = (() => {
     cleanup();
     build();
     phrase=(eng?PHRASES_EN:PHRASES_DE)[Math.floor(Math.random()*(eng?PHRASES_EN:PHRASES_DE).length)];
+    currentDance=Math.floor(Math.random()*DANCES.length); // Zufälliger Tanz!
     charX=-120;
     t=0; stateStart=0; state='run_in';
     lastTs=performance.now();
