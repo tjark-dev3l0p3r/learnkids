@@ -1372,7 +1372,7 @@ function renderImgCh(ex,el){
   (ex.ch||[]).forEach(c=>{
     const d=document.createElement('div');
     d.className='img-ch';
-    d.innerHTML=`<div class="ic">${c.e||'📝'}</div><div class="lb">${c.l}</div>`;
+    d.innerHTML=`<div class="lb" style="font-size:1.15rem;font-weight:800;padding:8px 0">${c.l}</div>`;
     d.onclick=()=>check(c.l,ex.ok,d,grid,'.img-ch');
     grid.appendChild(d);
   });
