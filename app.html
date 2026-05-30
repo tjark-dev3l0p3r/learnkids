@@ -974,38 +974,93 @@ function renderYesNo(ex,el){
 }
 
 // ═══════════════════════════════════════════
-// CHECK ANSWER
 // ═══════════════════════════════════════════
-const PRAISE=['Super! 🌟','Richtig! 🎉','Toll gemacht! ⭐','Wunderbar! 🦉','Perfekt! ✨','Ja! Das ist es! 🎊','Klasse! 💪','Genau! 🌈'];
+// CHECK ANSWER (Lernpsychologie: Growth Mindset + Fehlerkultur)
+// ═══════════════════════════════════════════
+
+// Prozess-Lob statt Person-Lob (Carol Dweck)
+const PRAISE_PROCESS=[
+  'Du hast nicht aufgegeben — das ist toll! 🌟',
+  'Richtig! Du hast genau hingeschaut! 🎉',
+  'Super — du hast es versucht und geschafft! ⭐',
+  'Wunderbar! Du denkst genau nach! 🦉',
+  'Ja! Du hast die richtige Strategie! ✨',
+  'Klasse — du wirst jeden Tag besser! 💪',
+  'Genau! Das konntest du letzte Woche noch nicht! 🌈',
+  'Toll — du hast nicht locker gelassen! 🎊'
+];
+
+// Fehlerkultur: neutral, nicht bestrafend (Moser, Nature Neuroscience)
+const ERROR_ENCOURAGE=[
+  'Fast! Schau nochmal genau hin 🔍',
+  'Noch nicht ganz — du schaffst das! 🦉',
+  'Versuch es nochmal — du lernst dabei! 💡',
+  'Gut versucht! Die richtige Antwort war...'
+];
+
+let exStreak=0; // Aufeinanderfolgende Richtige (für adaptive Schwierigkeit)
+let breakCounter=0; // Aufgaben-Zähler für Bewegungspausen
 
 function check(ans,ok,el,grid,sel){
   grid.querySelectorAll(sel).forEach(b=>{b.classList.add('dis');b.onclick=null;});
   const correct=ans===ok;
   el.classList.add(correct?'ok':'no');
+
   if(correct){
-    curOk++;
-    showFb(true);
-    say(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
+    curOk++;exStreak++;breakCounter++;
+    // Kurze Pause vor Lob (0.5s) — fühlt sich natürlicher an, gibt Raum für Selbstbestätigung
+    setTimeout(()=>showFb(true),500);
+    setTimeout(()=>say(PRAISE_PROCESS[Math.floor(Math.random()*PRAISE_PROCESS.length)]),600);
     if(curOk<=3)document.getElementById('es'+(curOk-1))?.classList.add('lit');
   }else{
+    exStreak=0;
     showFb(false);
-    say('Nicht ganz — du schaffst das! 🦉');
+    // Richtige Antwort IMMER zeigen + sanft erklären (kein negativer Sound)
+    const errMsg=ERROR_ENCOURAGE[Math.floor(Math.random()*ERROR_ENCOURAGE.length)];
+    setTimeout(()=>say(`${errMsg}: ${ok}`),300);
     grid.querySelectorAll(sel).forEach(b=>{
       if(b.textContent.trim()===ok||b.querySelector('.lb')?.textContent===ok)b.classList.add('ok');
     });
   }
+
+  // Bewegungspause nach 10-12 Aufgaben (wissenschaftlich belegt für Konzentration)
+  const showBreak=breakCounter>0&&breakCounter%10===0;
+
   setTimeout(()=>{
     hideFb();
     curIdx++;
-    if(curIdx>=curExs.length)finish();
-    else renderEx();
-  },correct?1100:1700);
+    if(curIdx>=curExs.length){finish();}
+    else if(showBreak){showMovementBreak();}
+    else{renderEx();}
+  },correct?1200:2000);
+}
+
+// Bewegungspause (Forschung: Bewegung verbessert Konzentration bei 8-10 Jährigen)
+const BREAKS=[
+  {ico:'🌟',txt:'Pause! Spring 5 Mal hoch! ⬆️',btn:'Fertig! Weiter!'},
+  {ico:'🌈',txt:'Pause! Streck dich so hoch du kannst! 🙆',btn:'Fertig! Weiter!'},
+  {ico:'🦉',txt:'Pause! Dreh dich einmal im Kreis! 🔄',btn:'Fertig! Weiter!'},
+  {ico:'💪',txt:'Pause! Mach 5 Liegestütze! 💪',btn:'Fertig! Weiter!'}
+];
+function showMovementBreak(){
+  const b=BREAKS[Math.floor(Math.random()*BREAKS.length)];
+  const body=document.getElementById('ex-body');
+  body.innerHTML=`
+    <div style="text-align:center;padding:20px;display:flex;flex-direction:column;align-items:center;gap:16px">
+      <div style="font-size:4rem;animation:pop .3s ease">${b.ico}</div>
+      <div style="font-family:'Baloo 2',cursive;font-size:1.3rem;font-weight:900;color:#fff;line-height:1.4">${b.txt}</div>
+      <div style="color:rgba(255,255,255,.65);font-size:.85rem">Kurze Pause macht dich schlauer! 🧠</div>
+      <button class="big-btn btn-amb" style="width:100%;max-width:240px;margin-top:8px" onclick="renderEx()">${b.btn}</button>
+    </div>`;
+  document.getElementById('lumio-q').textContent='Kleine Pause — dann geht\'s weiter! 🦉';
+  say(b.txt);
 }
 
 function showFb(ok){
   const fb=document.getElementById('fb');
-  document.getElementById('fb-ico').textContent=ok?'🌟':'💪';
-  document.getElementById('fb-txt').textContent=ok?'Super!':'Fast!';
+  document.getElementById('fb-ico').textContent=ok?'🌟':'💡';
+  // Fehler: Neutral (kein ❌) — Growth Mindset
+  document.getElementById('fb-txt').textContent=ok?'Richtig!':'Fast!';
   fb.className='fb show '+(ok?'fb-ok':'fb-no');
 }
 function hideFb(){document.getElementById('fb').className='fb';}
@@ -1023,7 +1078,13 @@ function finish(){
   document.getElementById('res-pts').textContent=`+${pts} ⭐`;
   document.getElementById('h-stars').textContent=S.stars;
   go('s-res');
-  say(`Du hast ${curOk} von ${tot} Aufgaben richtig! ${curOk===tot?'Das ist perfekt!':'Weiter so!'}`);
+  // Growth Mindset: Fokus auf Fortschritt und Prozess
+  const msg=curOk===tot
+    ?`Wow! Alle ${tot} Aufgaben richtig! Du hast wirklich nicht aufgegeben — das ist der Grund warum du immer besser wirst!`
+    :curOk>=Math.ceil(tot*0.6)
+    ?`${curOk} von ${tot} richtig — du wirst jeden Tag ein bisschen besser! Das ist wie ein Muskel der wächst!`
+    :`${curOk} von ${tot} richtig. Fehler sind gut — dein Gehirn lernt dabei am meisten! Versuch es nochmal!`;
+  say(msg);
 }
 
 function exitEx(){go('s-topics');}
