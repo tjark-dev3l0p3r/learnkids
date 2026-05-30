@@ -2164,18 +2164,46 @@ function detectLang(text){
   return sessionLang||'de';
 }
 
+// ── Microsoft Edge Neural TTS (kostenlos, Katja/Aria Neural) ──
+const TTS_API='https://waldwissen-lumio.netlify.app/.netlify/functions/tts';
+let ttsAudio=null; // aktiver Audio-Player
+
 function sayThen(text,cb,rate=0.88){
   const t=clean(String(text||''));
-  if(!t||!window.speechSynthesis){setTimeout(cb,100);return;}
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(t);
-  const lang=detectLang(t); // Automatisch erkennen!
-  u.lang=lang==='en'?'en-US':'de-DE';
-  u.rate=rate;u.pitch=1.05;u.volume=1;
-  const v=getBestVoice(lang);if(v)u.voice=v;
-  u.onend=()=>setTimeout(cb,120);
-  u.onerror=()=>setTimeout(cb,100);
-  speechSynthesis.speak(u);
+  if(!t){setTimeout(cb,80);return;}
+  const lang=detectLang(t);
+
+  // Laufenden Audio stoppen
+  if(ttsAudio){ttsAudio.pause();ttsAudio=null;}
+
+  // Edge TTS via Netlify Function
+  fetch(TTS_API,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text:t,lang})})
+  .then(r=>{
+    if(!r.ok)throw new Error('TTS error');
+    return r.blob();
+  })
+  .then(blob=>{
+    const url=URL.createObjectURL(blob);
+    const audio=new Audio(url);
+    ttsAudio=audio;
+    audio.playbackRate=Math.min(rate*1.1,1.6); // Edge TTS etwas schneller
+    audio.onended=()=>{URL.revokeObjectURL(url);ttsAudio=null;setTimeout(cb,100);};
+    audio.onerror=()=>{URL.revokeObjectURL(url);ttsAudio=null;setTimeout(cb,80);};
+    audio.play().catch(()=>setTimeout(cb,80));
+  })
+  .catch(()=>{
+    // Fallback: Browser-TTS falls Netlify nicht erreichbar
+    if(!window.speechSynthesis){setTimeout(cb,80);return;}
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(t);
+    u.lang=lang==='en'?'en-US':'de-DE';
+    u.rate=rate;u.pitch=1.05;u.volume=1;
+    const v=getBestVoice(lang);if(v)u.voice=v;
+    u.onend=()=>setTimeout(cb,120);
+    u.onerror=()=>setTimeout(cb,100);
+    speechSynthesis.speak(u);
+  });
 }
 
 function say(text,rate=0.88){sayThen(text,()=>{},rate);}
