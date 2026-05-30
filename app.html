@@ -1504,31 +1504,294 @@ function starBurst(){
   requestAnimationFrame(frame);
 }
 
-// 3. LUMIO TANZT — Duolingo-Style Maskottchen-Celebration
-let mascotEl=null;
-const MASCOT_PHRASES_DE=['Ja! Wau!','Perfekt!','RICHTIG!','Du rockst!','Mega! 🔥','Jawohl!','Klasse!','BOOM! 💥'];
-const MASCOT_PHRASES_EN=['YES!','CORRECT!','Amazing!','You rock!','PERFECT! 🔥','NAILED IT!','Great!','BOOM! 💥'];
-function showMascot(eng=false){
-  if(mascotEl)mascotEl.remove();
-  const phrases=eng?MASCOT_PHRASES_EN:MASCOT_PHRASES_DE;
-  const txt=phrases[Math.floor(Math.random()*phrases.length)];
-  mascotEl=document.createElement('div');
-  mascotEl.className='mascot-wrap';
-  mascotEl.innerHTML=`<div class="mascot-bubble">${txt}</div><span class="mascot-emoji">🦉</span>`;
-  document.body.appendChild(mascotEl);
-  // Reinkommen
-  requestAnimationFrame(()=>{
-    mascotEl.style.transition='bottom .35s cubic-bezier(.34,1.56,.64,1)';
-    mascotEl.style.bottom='50px';
-  });
-  // Rausgehen
-  setTimeout(()=>{
-    if(!mascotEl)return;
-    mascotEl.style.transition='bottom .4s ease-in';
-    mascotEl.style.bottom='-260px';
-    setTimeout(()=>{mascotEl&&mascotEl.remove();mascotEl=null;},420);
-  },1800);
-}
+// ══════════════════════════════════════════════
+// 3. FUCHS-CHARAKTER — 14 Körperteile, echte Animation
+// ══════════════════════════════════════════════
+const FOX = (() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const C = {fur:'#E07030',dark:'#B04818',belly:'#F5C090',nose:'#FF7070',
+    white:'#FFFFFF',pupil:'#1A1020',cheek:'rgba(255,120,120,0.35)',
+    outline:'#8A3015',tail_tip:'#F0E0C0',shadow:'rgba(0,0,0,0.18)'};
+
+  let wrap=null,svg=null,parts={},rafId=null;
+  let charX=0,charY=0,t=0,state='idle',stateStart=0;
+  let phrase='';
+
+  function e(tag,attrs,p){
+    const el=document.createElementNS(NS,tag);
+    Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+    if(p)p.appendChild(el);
+    return el;
+  }
+  function g(attrs,p){return e('g',attrs,p);}
+
+  function build(){
+    wrap=document.createElement('div');
+    wrap.style.cssText='position:fixed;bottom:0;left:-120px;z-index:9995;pointer-events:none;transition:none';
+    document.body.appendChild(wrap);
+
+    svg=e('svg',{viewBox:'0 0 100 170',width:'110',height:'170',
+      style:'overflow:visible;filter:drop-shadow(2px 4px 6px rgba(0,0,0,0.3))'},wrap);
+
+    // Shadow
+    parts.shadow=e('ellipse',{cx:'50',cy:'162',rx:'30',ry:'7',fill:C.shadow},svg);
+
+    // Speech bubble (hidden initially)
+    parts.bubbleG=g({transform:'translate(50,10)'},svg);
+    parts.bubbleBg=e('rect',{x:'-45',y:'-22',width:'90',height:'36',rx:'12',
+      fill:'#fff',stroke:'#ddd','stroke-width':'2',opacity:'0'},parts.bubbleG);
+    parts.bubbleTail=e('polygon',{points:'0,14 -8,22 8,22',fill:'#fff',opacity:'0'},parts.bubbleG);
+    parts.bubbleTxt=e('text',{x:'0',y:'5','text-anchor':'middle',
+      'font-family':'Baloo 2,cursive','font-weight':'900','font-size':'13',
+      fill:'#2d5a27',opacity:'0'},parts.bubbleG);
+
+    // TAIL (behind body) — bezier path
+    parts.tailG=g({},svg);
+    parts.tailPath=e('path',{d:'M 50 130 Q 20 115 18 90 Q 16 68 35 62',
+      stroke:C.fur,'stroke-width':'16',fill:'none','stroke-linecap':'round'},parts.tailG);
+    parts.tailTip=e('path',{d:'M 50 130 Q 20 115 18 90 Q 16 70 37 64',
+      stroke:C.tail_tip,'stroke-width':'7',fill:'none','stroke-linecap':'round'},parts.tailG);
+
+    // BACK RIGHT LEG (darker, behind)
+    parts.brLegG=g({},svg);
+    const brUp=g({},parts.brLegG); parts.brUp=brUp;
+    e('rect',{x:'-7',y:'0',width:'14',height:'28',rx:'7',fill:C.dark},brUp);
+    const brLo=g({transform:'translate(0,22)'},brUp); parts.brLo=brLo;
+    e('rect',{x:'-6',y:'0',width:'12',height:'24',rx:'6',fill:C.dark},brLo);
+    e('ellipse',{cx:'3',cy:'24',rx:'10',ry:'5',fill:C.dark},brLo);
+
+    // BACK LEFT LEG
+    parts.blLegG=g({},svg);
+    const blUp=g({},parts.blLegG); parts.blUp=blUp;
+    e('rect',{x:'-7',y:'0',width:'14',height:'28',rx:'7',fill:C.dark},blUp);
+    const blLo=g({transform:'translate(0,22)'},blUp); parts.blLo=blLo;
+    e('rect',{x:'-6',y:'0',width:'12',height:'24',rx:'6',fill:C.dark},blLo);
+    e('ellipse',{cx:'-3',cy:'24',rx:'10',ry:'5',fill:C.dark},blLo);
+
+    // BODY
+    parts.bodyG=g({},svg);
+    e('ellipse',{cx:'50',cy:'105',rx:'24',ry:'32',fill:C.fur},parts.bodyG);
+    e('ellipse',{cx:'50',cy:'112',rx:'14',ry:'20',fill:C.belly},parts.bodyG);
+
+    // BACK RIGHT ARM
+    parts.brArmG=g({},svg);
+    const brAUp=g({},parts.brArmG); parts.brAUp=brAUp;
+    e('rect',{x:'-6',y:'0',width:'12',height:'26',rx:'6',fill:C.dark},brAUp);
+    const brALo=g({transform:'translate(0,20)'},brAUp); parts.brALo=brALo;
+    e('rect',{x:'-5',y:'0',width:'10',height:'20',rx:'5',fill:C.dark},brALo);
+    e('ellipse',{cx:'0',cy:'20',rx:'7',ry:'5',fill:C.belly},brALo);
+
+    // HEAD
+    parts.headG=g({},svg);
+    // Head circle
+    e('circle',{cx:'50',cy:'64',r:'24',fill:C.fur},parts.headG);
+    // Ears
+    e('polygon',{points:'30,50 26,28 42,48',fill:C.fur},parts.headG);
+    e('polygon',{points:'31,49 28,33 40,47',fill:C.dark},parts.headG);
+    e('polygon',{points:'70,50 74,28 58,48',fill:C.fur},parts.headG);
+    e('polygon',{points:'69,49 72,33 60,47',fill:C.dark},parts.headG);
+    // Snout area
+    e('ellipse',{cx:'50',cy:'72',rx:'13',ry:'11',fill:C.belly},parts.headG);
+    // Eyes
+    const eyeL=g({transform:'translate(40,60)'},parts.headG);
+    parts.eyeL=eyeL;
+    e('circle',{cx:'0',cy:'0',r:'6',fill:C.white},eyeL);
+    parts.pupilL=e('circle',{cx:'0',cy:'0',r:'3.5',fill:C.pupil},eyeL);
+    e('circle',{cx:'1.5',cy:'-1.5',r:'1.2',fill:C.white},eyeL);
+    const eyeR=g({transform:'translate(60,60)'},parts.headG);
+    parts.eyeR=eyeR;
+    e('circle',{cx:'0',cy:'0',r:'6',fill:C.white},eyeR);
+    parts.pupilR=e('circle',{cx:'0',cy:'0',r:'3.5',fill:C.pupil},eyeR);
+    e('circle',{cx:'1.5',cy:'-1.5',r:'1.2',fill:C.white},eyeR);
+    // Cheeks
+    e('circle',{cx:'36',cy:'68',r:'6',fill:C.cheek},parts.headG);
+    e('circle',{cx:'64',cy:'68',r:'6',fill:C.cheek},parts.headG);
+    // Nose
+    e('ellipse',{cx:'50',cy:'73',rx:'4',ry:'3',fill:C.nose},parts.headG);
+    // Mouth
+    e('path',{d:'M 45 78 Q 50 83 55 78',stroke:C.outline,'stroke-width':'2',
+      fill:'none','stroke-linecap':'round'},parts.headG);
+
+    // FRONT LEFT ARM
+    parts.flArmG=g({},svg);
+    const flAUp=g({},parts.flArmG); parts.flAUp=flAUp;
+    e('rect',{x:'-6',y:'0',width:'12',height:'26',rx:'6',fill:C.fur},flAUp);
+    const flALo=g({transform:'translate(0,20)'},flAUp); parts.flALo=flALo;
+    e('rect',{x:'-5',y:'0',width:'10',height:'20',rx:'5',fill:C.fur},flALo);
+    e('ellipse',{cx:'0',cy:'20',rx:'7',ry:'5',fill:C.belly},flALo);
+
+    // FRONT RIGHT LEG (front, brighter)
+    parts.frLegG=g({},svg);
+    const frUp=g({},parts.frLegG); parts.frUp=frUp;
+    e('rect',{x:'-7',y:'0',width:'14',height:'28',rx:'7',fill:C.fur},frUp);
+    const frLo=g({transform:'translate(0,22)'},frUp); parts.frLo=frLo;
+    e('rect',{x:'-6',y:'0',width:'12',height:'24',rx:'6',fill:C.fur},frLo);
+    e('ellipse',{cx:'3',cy:'24',rx:'10',ry:'5',fill:C.belly},frLo);
+
+    // FRONT LEFT LEG
+    parts.flLegG=g({},svg);
+    const flUp=g({},parts.flLegG); parts.flUp=flUp;
+    e('rect',{x:'-7',y:'0',width:'14',height:'28',rx:'7',fill:C.fur},flUp);
+    const flLo=g({transform:'translate(0,22)'},flUp); parts.flLo=flLo;
+    e('rect',{x:'-6',y:'0',width:'12',height:'24',rx:'6',fill:C.fur},flLo);
+    e('ellipse',{cx:'-3',cy:'24',rx:'10',ry:'5',fill:C.belly},flLo);
+  }
+
+  // ── POSE HELPERS ──────────────────────────
+  function rot(el,deg,ox=0,oy=0){
+    el.style.transformOrigin=`${ox}px ${oy}px`;
+    el.style.transform=`rotate(${deg}deg)`;
+  }
+  function pos(el,tx,ty,rot=0,sx=1,sy=1){
+    el.setAttribute('transform',`translate(${tx},${ty}) rotate(${rot}) scale(${sx},${sy})`);
+  }
+  function posEl(el,tx,ty){el.style.transform=`translate(${tx}px,${ty}px)`;}
+
+  // ── RUNNING POSE ──────────────────────────
+  function poseRun(t){
+    const s=Math.sin,spd=t*6;
+    const legAmp=32,armAmp=28,bendAmp=20;
+    // Legs — diagonal pairs: FR+BL same phase, FL+BR opposite
+    const frA=s(spd)*legAmp, flA=s(spd+Math.PI)*legAmp;
+    const brA=s(spd+Math.PI)*legAmp, blA=s(spd)*legAmp;
+    pos(parts.frLegG,62,132); rot(parts.frUp,frA,7,0);
+    rot(parts.frLo,Math.max(0,s(spd+0.6))*bendAmp,6,0);
+    pos(parts.flLegG,38,132); rot(parts.flUp,flA,7,0);
+    rot(parts.flLo,Math.max(0,s(spd+Math.PI+0.6))*bendAmp,6,0);
+    pos(parts.brLegG,58,132); rot(parts.brUp,brA,7,0);
+    rot(parts.brLo,Math.max(0,s(spd+0.6))*bendAmp,6,0);
+    pos(parts.blLegG,42,132); rot(parts.blUp,blA,7,0);
+    rot(parts.blLo,Math.max(0,s(spd+Math.PI+0.6))*bendAmp,6,0);
+    // Arms — opposite to legs
+    pos(parts.flArmG,27,90); rot(parts.flAUp,s(spd)*armAmp,6,0);
+    rot(parts.flALo,s(spd)*10+5,5,0);
+    pos(parts.brArmG,73,90); rot(parts.brAUp,s(spd+Math.PI)*armAmp,6,0);
+    rot(parts.brALo,s(spd+Math.PI)*10+5,5,0);
+    // Body bob
+    const bob=Math.abs(s(spd*2))*-5;
+    posEl(parts.bodyG,0,bob);
+    posEl(parts.headG,0,bob-2);
+    posEl(parts.brArmG,0,bob);
+    posEl(parts.flArmG,0,bob);
+    // Tail wag
+    const tailRot=s(spd-0.6)*30;
+    parts.tailG.style.transformOrigin='50px 130px';
+    parts.tailG.style.transform=`rotate(${tailRot}deg)`;
+    // Head nod
+    parts.headG.style.transformOrigin='50px 64px';
+    parts.headG.style.transform+=` rotate(${s(spd*2)*4}deg)`;
+  }
+
+  // ── CELEBRATE POSE ────────────────────────
+  function poseCelebrate(dt){
+    const s=Math.sin,vt=dt*4.5;
+    // Body bounce with squash/stretch
+    const bounce=Math.abs(s(vt*2))*-28;
+    const phase=(dt%1.0)/1.0;
+    let sx=1,sy=1;
+    if(phase<0.15){sx=1.25;sy=0.8;}      // anticipation squash
+    else if(phase<0.35){sx=0.8;sy=1.3;}   // launch stretch
+    else if(phase<0.55){sx=1;sy=1;}        // air
+    else if(phase<0.7){sx=0.85;sy=1.15;}  // land stretch
+    else{sx=1.25;sy=0.82;}                 // impact squash
+
+    parts.bodyG.style.transform=`translateY(${bounce}px) scaleX(${sx}) scaleY(${sy})`;
+    parts.bodyG.style.transformOrigin='50px 105px';
+    parts.headG.style.transform=`translateY(${bounce-4}px)`;
+    parts.brArmG.style.transform=`translateY(${bounce}px)`;
+    parts.flArmG.style.transform=`translateY(${bounce}px)`;
+
+    // Arms wave alternating — raise high!
+    const aL=s(vt)*70-50, aR=s(vt+Math.PI)*70-50;
+    pos(parts.flArmG,22,88); rot(parts.flAUp,aL,6,0); rot(parts.flALo,aL*0.5,5,0);
+    pos(parts.brArmG,78,88); rot(parts.brAUp,aR,6,0); rot(parts.brALo,aR*0.5,5,0);
+
+    // Legs kick out
+    const legSpread=s(vt*2)*22;
+    pos(parts.frLegG,62,132); rot(parts.frUp,legSpread,7,0); rot(parts.frLo,10,6,0);
+    pos(parts.flLegG,38,132); rot(parts.flUp,-legSpread,7,0); rot(parts.flLo,10,6,0);
+    pos(parts.brLegG,60,132); rot(parts.brUp,legSpread*0.5,7,0);
+    pos(parts.blLegG,40,132); rot(parts.blUp,-legSpread*0.5,7,0);
+
+    // Head wag
+    parts.headG.style.transformOrigin='50px 64px';
+    const headWag=s(vt*1.4)*18;
+    parts.headG.style.transform=`translateY(${bounce-4}px) rotate(${headWag}deg)`;
+
+    // Tail excited wag
+    parts.tailG.style.transformOrigin='50px 130px';
+    parts.tailG.style.transform=`rotate(${s(vt*3)*50}deg)`;
+
+    // Eye blink every ~1.5s
+    const blink=s(vt*0.7)>0.9;
+    [parts.eyeL,parts.eyeR].forEach(ey=>{
+      ey.style.transform=blink?'scaleY(0.1)':'scaleY(1)';
+      ey.style.transformOrigin='0px 0px';
+    });
+  }
+
+  // ── MAIN LOOP ─────────────────────────────
+  let lastTs=0;
+  function loop(ts){
+    const dt=(ts-lastTs)/1000; lastTs=ts;
+    t+=dt;
+    const elapsed=t-stateStart;
+
+    if(state==='run_in'){
+      charX=Math.min(window.innerWidth/2-55, charX+dt*420);
+      poseRun(t);
+      wrap.style.left=charX+'px';
+      if(charX>=window.innerWidth/2-55){state='celebrate';stateStart=t;showBubble();}
+    }
+    else if(state==='celebrate'){
+      poseCelebrate(elapsed);
+      if(elapsed>2.0){state='run_out';stateStart=t;}
+    }
+    else if(state==='run_out'){
+      charX+=dt*480;
+      poseRun(t);
+      hideBubble();
+      wrap.style.left=charX+'px';
+      if(charX>window.innerWidth+120){cleanup();return;}
+    }
+
+    rafId=requestAnimationFrame(loop);
+  }
+
+  function showBubble(){
+    [parts.bubbleBg,parts.bubbleTail,parts.bubbleTxt].forEach(el=>{
+      el.style.transition='opacity .2s';
+      el.setAttribute('opacity','1');
+    });
+    parts.bubbleTxt.textContent=phrase;
+  }
+  function hideBubble(){
+    [parts.bubbleBg,parts.bubbleTail,parts.bubbleTxt].forEach(el=>el.setAttribute('opacity','0'));
+  }
+
+  function cleanup(){
+    if(rafId){cancelAnimationFrame(rafId);rafId=null;}
+    if(wrap){wrap.remove();wrap=null;svg=null;parts={};}
+  }
+
+  // ── PUBLIC API ────────────────────────────
+  const PHRASES_DE=['Ja! Wau!','Perfekt!','RICHTIG!','Du rockst!','Mega!','Jawohl!','Klasse!','BOOM!','YES!'];
+  const PHRASES_EN=['Yes!','Correct!','Amazing!','You rock!','Perfect!','Nailed it!','Great!','Boom!'];
+
+  function celebrate(eng=false){
+    cleanup();
+    build();
+    phrase=(eng?PHRASES_EN:PHRASES_DE)[Math.floor(Math.random()*(eng?PHRASES_EN:PHRASES_DE).length)];
+    charX=-120;
+    t=0; stateStart=0; state='run_in';
+    lastTs=performance.now();
+    rafId=requestAnimationFrame(loop);
+  }
+
+  return{celebrate};
+})();
+
+function showMascot(eng=false){FOX.celebrate(eng);}
 
 // 4. SCREEN FLASH
 function screenFlash(ok=true){
