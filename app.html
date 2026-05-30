@@ -1218,92 +1218,7 @@ const TOPICS_BY_GRADE = {
   },
 };
 
-const TOPICS = {
-    {id:'m01',n:'Zahlen 1–5 zählen',ico:'🌱',d:'Zähle kleine Mengen',gen:()=>mkCount(1,5,10)},
-    {id:'m02',n:'Zahlen 1–10 zählen',ico:'🔟',d:'Zähle bis 10',gen:()=>mkCount(1,10,10)},
-    {id:'m03',n:'Zahlen 10–20 zählen',ico:'2️⃣0️⃣',d:'Zähle bis 20',gen:()=>mkCount(10,20,10)},
-    {id:'m04',n:'Zahlen 20–50',ico:'5️⃣0️⃣',d:'Größere Mengen zählen',gen:()=>mkCount(20,50,10)},
-    {id:'m05',n:'Größer oder kleiner?',ico:'⚖️',d:'Vergleiche Zahlen',gen:()=>mkCompare(1,10,10)},
-    {id:'m06',n:'Kleiner oder größer 1-20?',ico:'⚖️',d:'Vergleiche bis 20',gen:()=>mkCompare(1,20,10)},
-    {id:'m07',n:'Welche ist kleiner?',ico:'🔽',d:'Finde die kleinste Zahl',gen:()=>mkSmaller(1,15,10)},
-    {id:'m08',n:'Addieren bis 5',ico:'➕',d:'Einfaches Addieren',gen:()=>mkAdd(3,2,10)},
-    {id:'m09',n:'Addieren bis 10',ico:'➕',d:'Addiere bis 10',gen:()=>mkAdd(5,5,10)},
-    {id:'m10',n:'Addieren bis 20',ico:'➕',d:'Addiere bis 20',gen:()=>mkAdd(10,10,10)},
-    {id:'m11',n:'Subtrahieren bis 10',ico:'➖',d:'Einfaches Abziehen',gen:()=>mkSub(10,10)},
-    {id:'m12',n:'Subtrahieren bis 20',ico:'➖',d:'Abziehen bis 20',gen:()=>mkSub(20,10)},
-    {id:'m13',n:'Gerade & Ungerade',ico:'2️⃣',d:'Ist die Zahl gerade?',gen:()=>mkOddEven(10)},
-    {id:'m14',n:'Formen erkennen',ico:'🔷',d:'Welche Form ist das?',gen:()=>mkForms(10)},
-    {id:'m15',n:'Hälfte finden',ico:'✂️',d:'Was ist die Hälfte?',gen:()=>mkHalves(10)},
-    {id:'m16',n:'Einmaleins × 2',ico:'✖️',d:'Die 2er Reihe',gen:()=>mkMult(2,10)},
-    {id:'m17',n:'Einmaleins × 3',ico:'✖️',d:'Die 3er Reihe',gen:()=>mkMult(3,10)},
-    {id:'m18',n:'Einmaleins × 4',ico:'✖️',d:'Die 4er Reihe',gen:()=>mkMult(4,10)},
-    {id:'m19',n:'Einmaleins × 5',ico:'✖️',d:'Die 5er Reihe',gen:()=>mkMult(5,10)},
-    {id:'m20',n:'Einmaleins × 10',ico:'✖️',d:'Die 10er Reihe',gen:()=>mkMult(10,10)},
-  ],
-  deutsch:[
-    {id:'d01',n:'Tiere erkennen',ico:'🐾',d:'Was ist das Tier?',gen:()=>mkAnimalName(12)},
-    {id:'d02',n:'Mehr Tiere',ico:'🦁',d:'Noch mehr Tiere lernen',gen:()=>shuffle(mkAnimalName(16)).slice(0,10)},
-    {id:'d03',n:'Farben lernen',ico:'🎨',d:'Welche Farbe ist das?',gen:()=>mkColors(10)},
-    {id:'d04',n:'Alle Farben',ico:'🌈',d:'Jede Farbe kennen',gen:()=>shuffle(mkColors(16)).slice(0,10)},
-    {id:'d05',n:'Buchstaben A–F',ico:'🔤',d:'Die ersten Buchstaben',gen:()=>mkLetters(6)},
-    {id:'d06',n:'Buchstaben G–L',ico:'🔤',d:'Weitere Buchstaben',gen:()=>shuffle(LETTERS.slice(6,12).map(it=>{
-      const wrong=shuffle(LETTERS.filter(x=>x.l!==it.l)).slice(0,3);
-      return{type:'imgch',q:`${it.e} — welcher Buchstabe? 🔤`,main:it.e,
-        ch:shuffle([{e:'📝',l:it.l},...wrong.map(w=>({e:'📝',l:w.l}))]),ok:it.l};
-    })).slice(0,10)},
-    {id:'d07',n:'Buchstaben M–R',ico:'🔤',d:'Noch mehr Buchstaben',gen:()=>shuffle(LETTERS.slice(12,18).map(it=>{
-      const wrong=shuffle(LETTERS.filter(x=>x.l!==it.l)).slice(0,3);
-      return{type:'imgch',q:`${it.e} — welcher Buchstabe? 🔤`,main:it.e,
-        ch:shuffle([{e:'📝',l:it.l},...wrong.map(w=>({e:'📝',l:w.l}))]),ok:it.l};
-    })).slice(0,10)},
-    {id:'d08',n:'Buchstaben S–Z',ico:'🔤',d:'Die letzten Buchstaben',gen:()=>shuffle(LETTERS.slice(18).map(it=>{
-      const wrong=shuffle(LETTERS.filter(x=>x.l!==it.l)).slice(0,3);
-      return{type:'imgch',q:`${it.e} — welcher Buchstabe? 🔤`,main:it.e,
-        ch:shuffle([{e:'📝',l:it.l},...wrong.map(w=>({e:'📝',l:w.l}))]),ok:it.l};
-    })).slice(0,10)},
-    {id:'d09',n:'Tierlaute',ico:'🎵',d:'Wer macht welches Geräusch?',gen:()=>mkSounds(10)},
-    {id:'d10',n:'Mehr Tierlaute',ico:'🎵',d:'Weitere Tiergeräusche',gen:()=>shuffle(mkSounds(10))},
-    {id:'d11',n:'Ist es ein Nomen?',ico:'📝',d:'Nomen erkennen',gen:()=>mkNomen(10)},
-    {id:'d12',n:'Mehr Nomen',ico:'📚',d:'Weitere Nomen üben',gen:()=>shuffle(mkNomen(16)).slice(0,10)},
-    {id:'d13',n:'Groß oder klein?',ico:'🔠',d:'Wann schreibe ich groß?',gen:()=>mkGross(10)},
-    {id:'d14',n:'Nochmals Groß/Klein',ico:'🔡',d:'Großschreibung üben',gen:()=>shuffle(mkGross(12)).slice(0,10)},
-    {id:'d15',n:'Obst & Gemüse',ico:'🍎',d:'Erkenne Obst und Gemüse',gen:()=>mkFruitVeg(10)},
-  ],
-  sachkunde:[
-    {id:'s01',n:'Jahreszeiten',ico:'🍂',d:'Frühling, Sommer, Herbst, Winter',gen:()=>mkSeasons(12)},
-    {id:'s02',n:'Nochmals Jahreszeiten',ico:'❄️',d:'Jahreszeiten wiederholen',gen:()=>shuffle(mkSeasons(16)).slice(0,10)},
-    {id:'s03',n:'Körperteile',ico:'🧍',d:'Zeige Körperteile',gen:()=>mkBody(10)},
-    {id:'s04',n:'Mehr Körperteile',ico:'💪',d:'Alle Körperteile kennen',gen:()=>shuffle(mkBody(10))},
-    {id:'s05',n:'Waldtiere',ico:'🌲',d:'Welche Tiere leben im Wald?',gen:()=>mkForest(10)},
-    {id:'s06',n:'Mehr Waldtiere',ico:'🦊',d:'Waldtiere wiederholen',gen:()=>shuffle(mkForest(10))},
-    {id:'s07',n:'Obst & Gemüse',ico:'🍎',d:'Erkenne Obst und Gemüse',gen:()=>mkFruitVeg(12)},
-    {id:'s08',n:'Mehr Obst & Gemüse',ico:'🥦',d:'Weitere Früchte lernen',gen:()=>shuffle(mkFruitVeg(12)).slice(0,10)},
-    {id:'s09',n:'Das Wetter',ico:'☁️',d:'Verschiedene Wetterarten',gen:()=>mkWeather(10)},
-    {id:'s10',n:'Nochmals Wetter',ico:'⛅',d:'Wetter wiederholen',gen:()=>shuffle(mkWeather(10))},
-    {id:'s11',n:'Berufe',ico:'👷',d:'Welcher Beruf ist das?',gen:()=>mkJobs(10)},
-    {id:'s12',n:'Mehr Berufe',ico:'👨‍⚕️',d:'Weitere Berufe kennen',gen:()=>shuffle(mkJobs(10))},
-    {id:'s13',n:'Tiere erkennen',ico:'🐾',d:'Welches Tier ist das?',gen:()=>mkAnimalName(12)},
-    {id:'s14',n:'Farben in der Natur',ico:'🌈',d:'Farben überall',gen:()=>mkColors(10)},
-    {id:'s15',n:'Tierstimmen',ico:'🎵',d:'Welches Tier macht was?',gen:()=>mkSounds(10)},
-  ],
-  englisch:[
-    {id:'e01',n:'Numbers 1–5',ico:'🔢',d:'Zahlen auf Englisch',gen:()=>shuffle(mkEngNums(10)).filter((_,i)=>i<8)},
-    {id:'e02',n:'Numbers 6–10',ico:'🔟',d:'Mehr Zahlen auf Englisch',gen:()=>shuffle(mkEngNums(12)).slice(0,8)},
-    {id:'e03',n:'Numbers 11–15',ico:'1️⃣5️⃣',d:'Größere Zahlen',gen:()=>shuffle(mkEngNums(15)).slice(0,8)},
-    {id:'e04',n:'Colors',ico:'🌈',d:'Farben auf Englisch',gen:()=>mkEngColors(10)},
-    {id:'e05',n:'More Colors',ico:'🎨',d:'Weitere Farben',gen:()=>shuffle(mkEngColors(10))},
-    {id:'e06',n:'Animals',ico:'🐾',d:'Tiere auf Englisch',gen:()=>mkEngAnimals(12)},
-    {id:'e07',n:'More Animals',ico:'🦁',d:'Weitere Tiere',gen:()=>shuffle(mkEngAnimals(12)).slice(0,10)},
-    {id:'e08',n:'Family',ico:'👨‍👩‍👧',d:'Familie auf Englisch',gen:()=>mkEngFamily(10)},
-    {id:'e09',n:'School Things',ico:'🎒',d:'Schulsachen auf Englisch',gen:()=>mkEngSchool(10)},
-    {id:'e10',n:'Body Parts',ico:'🧍',d:'Körperteile auf Englisch',gen:()=>mkEngBody(10)},
-    {id:'e11',n:'Food',ico:'🍎',d:'Essen auf Englisch',gen:()=>mkEngFood(10)},
-    {id:'e12',n:'More Food',ico:'🍕',d:'Weitere Speisen',gen:()=>shuffle(mkEngFood(10))},
-    {id:'e13',n:'Repeat Animals',ico:'🐘',d:'Tiere nochmals üben',gen:()=>shuffle(mkEngAnimals(16)).slice(0,10)},
-    {id:'e14',n:'Repeat Colors',ico:'🌈',d:'Farben nochmals üben',gen:()=>shuffle(mkEngColors(16)).slice(0,10)},
-    {id:'e15',n:'Mixed Review',ico:'🔄',d:'Alles zusammen',gen:()=>shuffle([...mkEngColors(4),...mkEngAnimals(4),...mkEngFamily(4)]).slice(0,10)},
-  ]
-};
+// (alte TOPICS entfernt — wird durch TOPICS_BY_GRADE ersetzt)
 
 const SUBJECTS={
   mathe:{n:'Mathe',e:'🔢',cls:'s-m'},
@@ -1336,7 +1251,7 @@ function goStart(){
 }
 
 // Aktive Topics je nach Klasse
-function getTopics(key){return(TOPICS_BY_GRADE[S.grade]||TOPICS_BY_GRADE[1])[key]||TOPICS[key]||[];}
+function getTopics(key){return((TOPICS_BY_GRADE[S.grade]||TOPICS_BY_GRADE[1])||{})[key]||[];}
 
 function renderHome(){
   document.getElementById('h-name').textContent=S.name;
