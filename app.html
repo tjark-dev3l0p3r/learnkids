@@ -2459,49 +2459,75 @@ function detectLang(text){
   return sessionLang||'de';
 }
 
-// ── Microsoft Edge Neural TTS (kostenlos, Katja/Aria Neural) ──
-const TTS_API='https://waldwissen-lumio.netlify.app/.netlify/functions/tts';
-let ttsAudio=null; // aktiver Audio-Player
+// ── TTS — Parler (lokal) → Edge Neural (Netlify) → Browser ──
+const TTS_LOCAL='http://localhost:5055/tts';        // Parler-TTS (beste Qualität)
+const TTS_CLOUD='https://waldwissen-lumio.netlify.app/.netlify/functions/tts'; // Edge Neural
+let ttsAudio=null;
+let localOk=null; // null=unbekannt, true=verfügbar, false=nicht da
 
-function sayThen(text,cb,rate=0.88){
+// Prüft einmalig ob lokaler Server läuft
+async function checkLocal(){
+  if(localOk!==null)return localOk;
+  try{
+    const r=await fetch('http://localhost:5055/health',{signal:AbortSignal.timeout(800)});
+    localOk=r.ok;
+  }catch{localOk=false;}
+  return localOk;
+}
+
+function playAudio(blob,rate,cb){
+  const url=URL.createObjectURL(blob);
+  const audio=new Audio(url);
+  ttsAudio=audio;
+  audio.playbackRate=rate;
+  audio.onended=()=>{URL.revokeObjectURL(url);ttsAudio=null;setTimeout(cb,80);};
+  audio.onerror=()=>{URL.revokeObjectURL(url);ttsAudio=null;setTimeout(cb,60);};
+  audio.play().catch(()=>{URL.revokeObjectURL(url);ttsAudio=null;setTimeout(cb,60);});
+}
+
+function browserFallback(t,lang,rate,cb){
+  if(!window.speechSynthesis){setTimeout(cb,80);return;}
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);
+  u.lang=lang==='en'?'en-US':'de-DE';
+  u.rate=rate;u.pitch=1.05;u.volume=1;
+  const v=getBestVoice(lang);if(v)u.voice=v;
+  u.onend=()=>setTimeout(cb,100);
+  u.onerror=()=>setTimeout(cb,80);
+  speechSynthesis.speak(u);
+}
+
+async function sayThen(text,cb,rate=0.92){
   const t=clean(String(text||''));
   if(!t){setTimeout(cb,80);return;}
   const lang=detectLang(t);
-
-  // Laufenden Audio stoppen
   if(ttsAudio){ttsAudio.pause();ttsAudio=null;}
 
-  // Edge TTS via Netlify Function
-  fetch(TTS_API,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({text:t,lang})})
-  .then(r=>{
-    if(!r.ok)throw new Error('TTS error');
-    return r.blob();
-  })
-  .then(blob=>{
-    const url=URL.createObjectURL(blob);
-    const audio=new Audio(url);
-    ttsAudio=audio;
-    audio.playbackRate=Math.min(rate*1.1,1.6); // Edge TTS etwas schneller
-    audio.onended=()=>{URL.revokeObjectURL(url);ttsAudio=null;setTimeout(cb,100);};
-    audio.onerror=()=>{URL.revokeObjectURL(url);ttsAudio=null;setTimeout(cb,80);};
-    audio.play().catch(()=>setTimeout(cb,80));
-  })
-  .catch(()=>{
-    // Fallback: Browser-TTS falls Netlify nicht erreichbar
-    if(!window.speechSynthesis){setTimeout(cb,80);return;}
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(t);
-    u.lang=lang==='en'?'en-US':'de-DE';
-    u.rate=rate;u.pitch=1.05;u.volume=1;
-    const v=getBestVoice(lang);if(v)u.voice=v;
-    u.onend=()=>setTimeout(cb,120);
-    u.onerror=()=>setTimeout(cb,100);
-    speechSynthesis.speak(u);
-  });
+  const body=JSON.stringify({text:t,lang});
+  const hdr={'Content-Type':'application/json'};
+
+  // 1. Versuche lokalen Parler-TTS Server (beste Qualität)
+  const hasLocal=await checkLocal();
+  if(hasLocal){
+    try{
+      const r=await fetch(TTS_LOCAL,{method:'POST',headers:hdr,body,
+        signal:AbortSignal.timeout(15000)});
+      if(r.ok){playAudio(await r.blob(),rate,cb);return;}
+    }catch{}
+  }
+
+  // 2. Edge Neural via Netlify
+  try{
+    const r=await fetch(TTS_CLOUD,{method:'POST',headers:hdr,body,
+      signal:AbortSignal.timeout(8000)});
+    if(r.ok){playAudio(await r.blob(),Math.min(rate*1.1,1.5),cb);return;}
+  }catch{}
+
+  // 3. Browser-Fallback
+  browserFallback(t,lang,rate,cb);
 }
 
-function say(text,rate=0.88){sayThen(text,()=>{},rate);}
+function say(text,rate=0.92){sayThen(text,()=>{},rate);}
 
 speechSynthesis.addEventListener?.('voiceschanged',()=>{
   Object.keys(voiceCache).forEach(k=>delete voiceCache[k]);
