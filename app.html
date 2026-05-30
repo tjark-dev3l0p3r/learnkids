@@ -885,7 +885,7 @@ function renderEx(){
   const tot=curExs.length;
   document.getElementById('ex-fill').style.width=(curIdx/tot*100)+'%';
   document.getElementById('ex-cnt').textContent=`${curIdx+1}/${tot}`;
-  document.getElementById('lumio-q').textContent=ex.q;
+  document.getElementById('lumio-q').textContent=clean(ex.q);
   const body=document.getElementById('ex-body');
   body.innerHTML='';
   if(ex.type==='count')renderCount(ex,body);
