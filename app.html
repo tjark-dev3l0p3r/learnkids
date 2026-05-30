@@ -1637,97 +1637,94 @@ const FOX = (() => {
     e('ellipse',{cx:'-3',cy:'24',rx:'10',ry:'5',fill:C.belly},flLo);
   }
 
-  // ── POSE HELPERS ──────────────────────────
-  function rot(el,deg,ox=0,oy=0){
-    el.style.transformOrigin=`${ox}px ${oy}px`;
-    el.style.transform=`rotate(${deg}deg)`;
-  }
-  function pos(el,tx,ty,rot=0,sx=1,sy=1){
-    el.setAttribute('transform',`translate(${tx},${ty}) rotate(${rot}) scale(${sx},${sy})`);
-  }
-  function posEl(el,tx,ty){el.style.transform=`translate(${tx}px,${ty}px)`;}
+  // ── SVG TRANSFORM HELPER — KEIN CSS, nur setAttribute ──
+  // rotate(deg, pivotX, pivotY) ist das sicherste Format in SVG
+  function tr(el, tx, ty, rot=0){ el.setAttribute('transform',`translate(${tx},${ty}) rotate(${rot})`); }
+  function rotAround(el, deg, px, py){ el.setAttribute('transform',`rotate(${deg},${px},${py})`); }
 
   // ── RUNNING POSE ──────────────────────────
   function poseRun(t){
-    const s=Math.sin,spd=t*6;
-    const legAmp=32,armAmp=28,bendAmp=20;
-    // Legs — diagonal pairs: FR+BL same phase, FL+BR opposite
-    const frA=s(spd)*legAmp, flA=s(spd+Math.PI)*legAmp;
-    const brA=s(spd+Math.PI)*legAmp, blA=s(spd)*legAmp;
-    pos(parts.frLegG,62,132); rot(parts.frUp,frA,7,0);
-    rot(parts.frLo,Math.max(0,s(spd+0.6))*bendAmp,6,0);
-    pos(parts.flLegG,38,132); rot(parts.flUp,flA,7,0);
-    rot(parts.flLo,Math.max(0,s(spd+Math.PI+0.6))*bendAmp,6,0);
-    pos(parts.brLegG,58,132); rot(parts.brUp,brA,7,0);
-    rot(parts.brLo,Math.max(0,s(spd+0.6))*bendAmp,6,0);
-    pos(parts.blLegG,42,132); rot(parts.blUp,blA,7,0);
-    rot(parts.blLo,Math.max(0,s(spd+Math.PI+0.6))*bendAmp,6,0);
-    // Arms — opposite to legs
-    pos(parts.flArmG,27,90); rot(parts.flAUp,s(spd)*armAmp,6,0);
-    rot(parts.flALo,s(spd)*10+5,5,0);
-    pos(parts.brArmG,73,90); rot(parts.brAUp,s(spd+Math.PI)*armAmp,6,0);
-    rot(parts.brALo,s(spd+Math.PI)*10+5,5,0);
-    // Body bob
-    const bob=Math.abs(s(spd*2))*-5;
-    posEl(parts.bodyG,0,bob);
-    posEl(parts.headG,0,bob-2);
-    posEl(parts.brArmG,0,bob);
-    posEl(parts.flArmG,0,bob);
-    // Tail wag
-    const tailRot=s(spd-0.6)*30;
-    parts.tailG.style.transformOrigin='50px 130px';
-    parts.tailG.style.transform=`rotate(${tailRot}deg)`;
-    // Head nod
-    parts.headG.style.transformOrigin='50px 64px';
-    parts.headG.style.transform+=` rotate(${s(spd*2)*4}deg)`;
+    const s=Math.sin, spd=t*5.5;
+    const legA=28, armA=22, bend=16;
+    const bob=Math.abs(s(spd*2))*3;
+
+    // Hüfte-Position (Körper wippt leicht)
+    const bodyY=105+bob;
+    tr(parts.bodyG, 0, -bob);
+    tr(parts.headG, 0, -bob-2);
+
+    // Beine — diagonal: FR+BL gleiche Phase, FL+BR entgegen
+    const frA=s(spd)*legA,  blA=s(spd)*legA;
+    const flA=s(spd+Math.PI)*legA, brA=s(spd+Math.PI)*legA;
+    // Knie-Beugung (immer positiv = nach vorne gebogen)
+    const frK=Math.max(0,s(spd+0.5))*bend;
+    const flK=Math.max(0,s(spd+Math.PI+0.5))*bend;
+
+    tr(parts.frLegG, 63, 132);
+    rotAround(parts.frUp,  frA, 7, 0);
+    rotAround(parts.frLo,  frK, 6, 0);
+
+    tr(parts.flLegG, 37, 132);
+    rotAround(parts.flUp,  flA, 7, 0);
+    rotAround(parts.flLo,  flK, 6, 0);
+
+    tr(parts.brLegG, 60, 132);
+    rotAround(parts.brUp,  brA, 7, 0);
+    rotAround(parts.brLo,  Math.max(0,s(spd+0.5))*bend, 6, 0);
+
+    tr(parts.blLegG, 40, 132);
+    rotAround(parts.blUp,  blA, 7, 0);
+    rotAround(parts.blLo,  Math.max(0,s(spd+Math.PI+0.5))*bend, 6, 0);
+
+    // Arme — gegenläufig zu Beinen
+    tr(parts.flArmG, 26, 90-bob);
+    rotAround(parts.flAUp, s(spd+Math.PI)*armA, 6, 0);
+    rotAround(parts.flALo, 8, 5, 0);
+
+    tr(parts.brArmG, 74, 90-bob);
+    rotAround(parts.brAUp, s(spd)*armA, 6, 0);
+    rotAround(parts.brALo, 8, 5, 0);
+
+    // Schwanz wedelt
+    rotAround(parts.tailG, s(spd-0.5)*22, 50, 130);
+
+    // Kopf nickt leicht
+    rotAround(parts.headG, s(spd*2)*3, 50, 64);
+    tr(parts.headG, 0, -bob-2);
   }
 
   // ── CELEBRATE POSE ────────────────────────
   function poseCelebrate(dt){
-    const s=Math.sin,vt=dt*4.5;
-    // Body bounce with squash/stretch
-    const bounce=Math.abs(s(vt*2))*-28;
-    const phase=(dt%1.0)/1.0;
-    let sx=1,sy=1;
-    if(phase<0.15){sx=1.25;sy=0.8;}      // anticipation squash
-    else if(phase<0.35){sx=0.8;sy=1.3;}   // launch stretch
-    else if(phase<0.55){sx=1;sy=1;}        // air
-    else if(phase<0.7){sx=0.85;sy=1.15;}  // land stretch
-    else{sx=1.25;sy=0.82;}                 // impact squash
+    const s=Math.sin, vt=dt*4;
+    const bounce=Math.abs(s(vt*2))*22;
 
-    parts.bodyG.style.transform=`translateY(${bounce}px) scaleX(${sx}) scaleY(${sy})`;
-    parts.bodyG.style.transformOrigin='50px 105px';
-    parts.headG.style.transform=`translateY(${bounce-4}px)`;
-    parts.brArmG.style.transform=`translateY(${bounce}px)`;
-    parts.flArmG.style.transform=`translateY(${bounce}px)`;
+    // Körper springt — nur translate, kein scale (vermeidet Augen-Drift)
+    tr(parts.bodyG, 0, -bounce);
+    tr(parts.headG, 0, -bounce-3);
 
-    // Arms wave alternating — raise high!
-    const aL=s(vt)*70-50, aR=s(vt+Math.PI)*70-50;
-    pos(parts.flArmG,22,88); rot(parts.flAUp,aL,6,0); rot(parts.flALo,aL*0.5,5,0);
-    pos(parts.brArmG,78,88); rot(parts.brAUp,aR,6,0); rot(parts.brALo,aR*0.5,5,0);
+    // Arme hoch schwingen — abwechselnd
+    const aL=s(vt)*55-20, aR=s(vt+Math.PI)*55-20;
+    tr(parts.flArmG, 24, 90-bounce);
+    rotAround(parts.flAUp, aL, 6, 0);
+    rotAround(parts.flALo, aL*0.4+5, 5, 0);
 
-    // Legs kick out
-    const legSpread=s(vt*2)*22;
-    pos(parts.frLegG,62,132); rot(parts.frUp,legSpread,7,0); rot(parts.frLo,10,6,0);
-    pos(parts.flLegG,38,132); rot(parts.flUp,-legSpread,7,0); rot(parts.flLo,10,6,0);
-    pos(parts.brLegG,60,132); rot(parts.brUp,legSpread*0.5,7,0);
-    pos(parts.blLegG,40,132); rot(parts.blUp,-legSpread*0.5,7,0);
+    tr(parts.brArmG, 76, 90-bounce);
+    rotAround(parts.brAUp, aR, 6, 0);
+    rotAround(parts.brALo, aR*0.4+5, 5, 0);
 
-    // Head wag
-    parts.headG.style.transformOrigin='50px 64px';
-    const headWag=s(vt*1.4)*18;
-    parts.headG.style.transform=`translateY(${bounce-4}px) rotate(${headWag}deg)`;
+    // Beine spreizen
+    const ls=s(vt*2)*18;
+    tr(parts.frLegG, 63, 132); rotAround(parts.frUp,  ls, 7, 0); rotAround(parts.frLo, 8, 6, 0);
+    tr(parts.flLegG, 37, 132); rotAround(parts.flUp, -ls, 7, 0); rotAround(parts.flLo, 8, 6, 0);
+    tr(parts.brLegG, 60, 132); rotAround(parts.brUp,  ls*0.5, 7, 0); rotAround(parts.brLo, 0, 6, 0);
+    tr(parts.blLegG, 40, 132); rotAround(parts.blUp, -ls*0.5, 7, 0); rotAround(parts.blLo, 0, 6, 0);
 
-    // Tail excited wag
-    parts.tailG.style.transformOrigin='50px 130px';
-    parts.tailG.style.transform=`rotate(${s(vt*3)*50}deg)`;
+    // Kopf wackelt — rotate um Kopf-Mittelpunkt
+    rotAround(parts.headG, s(vt*1.3)*14, 50, 64);
+    tr(parts.headG, 0, -bounce-3);
 
-    // Eye blink every ~1.5s
-    const blink=s(vt*0.7)>0.9;
-    [parts.eyeL,parts.eyeR].forEach(ey=>{
-      ey.style.transform=blink?'scaleY(0.1)':'scaleY(1)';
-      ey.style.transformOrigin='0px 0px';
-    });
+    // Schwanz wedelt wild
+    rotAround(parts.tailG, s(vt*2.8)*40, 50, 130);
   }
 
   // ── MAIN LOOP ─────────────────────────────
