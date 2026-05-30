@@ -1010,51 +1010,67 @@ function renderYesNo(ex,el){
 // ═══════════════════════════════════════════
 // ANIMATIONEN
 // ═══════════════════════════════════════════
+// ── Konfetti via requestAnimationFrame (100% kompatibel) ──
 function confetti(){
-  const el=document.createElement('div');
-  el.className='conf';
   const colors=['#f5a623','#22c55e','#3b82f6','#f43f5e','#a855f7','#fbbf24','#34d399','#fb923c','#e879f9'];
+  const particles=[];
   for(let i=0;i<60;i++){
-    const p=document.createElement('div');
-    p.className='conf-p';
-    const dur=(0.9+Math.random()*1.4).toFixed(2)+'s';
-    const delay=(Math.random()*0.5).toFixed(2)+'s';
-    p.style.background=colors[i%colors.length];
-    p.style.left=Math.random()*100+'%';
-    p.style.width=(7+Math.random()*9)+'px';
-    p.style.height=(7+Math.random()*9)+'px';
-    p.style.borderRadius=Math.random()>.5?'50%':'3px';
-    p.style.setProperty('--d',dur);
-    p.style.setProperty('--delay',delay);
-    el.appendChild(p);
+    const el=document.createElement('div');
+    el.style.cssText=`position:fixed;z-index:999;pointer-events:none;border-radius:${Math.random()>.5?'50%':'3px'};background:${colors[i%colors.length]};width:${7+Math.random()*8}px;height:${7+Math.random()*8}px`;
+    document.body.appendChild(el);
+    particles.push({el,x:Math.random()*window.innerWidth,y:-10,
+      vx:(Math.random()-0.5)*6,vy:2+Math.random()*4,
+      rot:Math.random()*360,rotV:(Math.random()-0.5)*15,
+      delay:Math.random()*300,born:0,done:false});
   }
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(),2500);
+  const start=performance.now();
+  function frame(now){
+    let alive=false;
+    particles.forEach(p=>{
+      if(p.done)return;
+      if(!p.born)p.born=now+p.delay;
+      if(now<p.born){alive=true;return;}
+      const t=(now-p.born)/1800;
+      if(t>=1){p.el.remove();p.done=true;return;}
+      alive=true;
+      p.x+=p.vx; p.y+=p.vy+(t*2); p.rot+=p.rotV;
+      p.el.style.transform=`translate(${p.x}px,${p.y}px) rotate(${p.rot}deg)`;
+      p.el.style.opacity=t<0.8?1:1-(t-0.8)/0.2;
+    });
+    if(alive)requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 }
 
+// ── Sterne-Explosion via rAF ──
 function starBurst(){
-  const cx=window.innerWidth/2, cy=window.innerHeight*0.42;
-  const emojis=['⭐','🌟','✨','💫','🎉','🎊','💥','🏆'];
+  const cx=window.innerWidth/2, cy=window.innerHeight*0.4;
+  const emojis=['⭐','🌟','✨','💫','🎉','🎊','💥','🏆','🌈','🎈'];
+  const stars=[];
   for(let i=0;i<10;i++){
-    const s=document.createElement('div');
-    s.className='star-burst';
-    const angle=(i/10)*Math.PI*2+(Math.random()-.5)*.3;
-    const dist=90+Math.random()*70;
-    const dur=(0.5+Math.random()*0.5).toFixed(2)+'s';
-    s.textContent=emojis[i%emojis.length];
-    s.style.position='fixed';
-    s.style.left=cx+'px';
-    s.style.top=cy+'px';
-    s.style.fontSize='1.8rem';
-    s.style.zIndex='150';
-    s.style.pointerEvents='none';
-    s.style.setProperty('--tx',Math.cos(angle)*dist+'px');
-    s.style.setProperty('--ty',Math.sin(angle)*dist+'px');
-    s.style.setProperty('--d',dur);
-    s.style.animation=`star-fly ${dur} ease-out forwards`;
-    document.body.appendChild(s);
-    setTimeout(()=>s.remove(),1000);
+    const el=document.createElement('div');
+    const angle=(i/10)*Math.PI*2+(Math.random()-.5)*.4;
+    const dist=100+Math.random()*80;
+    el.textContent=emojis[i%emojis.length];
+    el.style.cssText=`position:fixed;z-index:998;pointer-events:none;font-size:1.9rem;left:${cx}px;top:${cy}px;transform:translate(-50%,-50%)`;
+    document.body.appendChild(el);
+    stars.push({el,tx:Math.cos(angle)*dist,ty:Math.sin(angle)*dist,dur:500+Math.random()*300,done:false});
   }
+  const start=performance.now();
+  function frame(now){
+    let alive=false;
+    stars.forEach(s=>{
+      if(s.done)return;
+      const t=Math.min((now-start)/s.dur,1);
+      const ease=1-Math.pow(1-t,3);
+      s.el.style.transform=`translate(calc(-50% + ${s.tx*ease}px),calc(-50% + ${s.ty*ease}px)) scale(${1-ease*.8})`;
+      s.el.style.opacity=1-ease;
+      if(t>=1){s.el.remove();s.done=true;}
+      else alive=true;
+    });
+    if(alive)requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 }
 
 function shakeEl(el){
@@ -1301,16 +1317,28 @@ function isEng(){return curSubj==='englisch';}
 // Sprache für aktuelle Session merken (auch nach renderEx-Aufrufen)
 let sessionLang='de';
 
+// Automatische Spracherkennung — erkennt ob Text Deutsch oder Englisch ist
+function detectLang(text){
+  // Deutsches Zeichen = sofort Deutsch
+  if(/[äöüÄÖÜß]/.test(text))return'de';
+  // Häufige deutsche Wörter
+  const deWords=['du','hast','das','ist','und','nicht','noch','ganz','dein','gut','toll','super','ja','nein','richtig','weiter','dich','dir','ich','wir','ein','eine','der','die','bist','war','habe'];
+  const words=text.toLowerCase().split(/\W+/);
+  const hits=words.filter(w=>deWords.includes(w)).length;
+  if(hits>=2)return'de';
+  // Sonst: je nach sessionLang entscheiden
+  return sessionLang||'de';
+}
+
 function sayThen(text,cb,rate=0.88){
   const t=clean(String(text||''));
   if(!t||!window.speechSynthesis){setTimeout(cb,100);return;}
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(t);
-  // sessionLang wird in startTopic gesetzt und bleibt konstant
-  const eng=sessionLang==='en';
-  u.lang=eng?'en-US':'de-DE';
+  const lang=detectLang(t); // Automatisch erkennen!
+  u.lang=lang==='en'?'en-US':'de-DE';
   u.rate=rate;u.pitch=1.05;u.volume=1;
-  const v=getBestVoice(eng?'en':'de');if(v)u.voice=v;
+  const v=getBestVoice(lang);if(v)u.voice=v;
   u.onend=()=>setTimeout(cb,120);
   u.onerror=()=>setTimeout(cb,100);
   speechSynthesis.speak(u);
