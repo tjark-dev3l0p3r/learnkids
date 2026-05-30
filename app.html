@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2d5a27">
+<title>WaldWissen — Lernen mit Lumio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap');
+:root{
+  --green:#2d5a27;--green2:#4a8c3f;--green3:#7bc67a;--pale:#c8e6c9;
+  --cream:#fdf8f0;--warm:#fff8e7;--amber:#f5a623;--brown:#6d4c3d;
+  --blue:#3b82f6;--red:#ef4444;--purple:#8b5cf6;
+  --shadow:rgba(45,90,39,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;touch-action:manipulation}
+body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--brown);display:flex;flex-direction:column}
+
+/* ── SCREENS ── */
+.screen{display:none;flex-direction:column;height:100%;overflow:hidden}
+.screen.active{display:flex}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--green);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-logo{font-family:'Baloo 2',cursive;font-size:1.25rem;font-weight:900;color:#fff;display:flex;align-items:center;gap:6px}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.stars-badge{background:var(--amber);border-radius:50px;padding:5px 12px;font-weight:800;font-size:.85rem;color:#fff;display:flex;align-items:center;gap:5px}
+.btn-back{background:rgba(255,255,255,.15);border:none;border-radius:10px;padding:8px 14px;color:#fff;font-size:1rem;cursor:pointer;font-family:'Baloo 2',cursive;font-weight:700}
+
+/* ── HOME SCREEN ── */
+#s-home .scroll{flex:1;overflow-y:auto;padding:20px 18px 30px}
+.welcome-hero{background:linear-gradient(135deg,#1a3a16,#4a8c3f);border-radius:22px;padding:24px;margin-bottom:22px;position:relative;overflow:hidden}
+.welcome-hero::before{content:'🌲🌳🌿';position:absolute;bottom:-5px;right:10px;font-size:2.5rem;opacity:.4}
+.welcome-title{font-family:'Baloo 2',cursive;font-size:1.6rem;font-weight:900;color:#fff;margin-bottom:6px}
+.welcome-sub{color:rgba(255,255,255,.8);font-size:.88rem;line-height:1.5}
+.welcome-lumio{font-size:3rem;margin-bottom:10px}
+.section-head{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--green);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.grade-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.grade-card{background:#fff;border:3px solid var(--pale);border-radius:18px;padding:18px 14px;text-align:center;cursor:pointer;transition:all .18s;active:scale(.96)}
+.grade-card.sel{border-color:var(--amber);background:var(--warm)}
+.grade-card:active{transform:scale(.95)}
+.grade-num{font-family:'Baloo 2',cursive;font-size:2rem;font-weight:900;color:var(--green)}
+.grade-label{font-size:.78rem;color:var(--brown);font-weight:700;margin-top:2px}
+.subject-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.subject-card{border-radius:18px;padding:20px 14px;text-align:center;cursor:pointer;transition:all .18s;border:none;position:relative;overflow:hidden}
+.subject-card:active{transform:scale(.95)}
+.subject-icon{font-size:2.4rem;margin-bottom:8px}
+.subject-name{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:#fff}
+.subject-count{font-size:.72rem;color:rgba(255,255,255,.8);margin-top:2px}
+.subject-prog{position:absolute;bottom:0;left:0;height:4px;background:rgba(255,255,255,.4);border-radius:0 0 0 18px;transition:width .4s}
+.s-mathe{background:linear-gradient(135deg,#ef4444,#dc2626)}
+.s-deutsch{background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
+.s-sachkunde{background:linear-gradient(135deg,#10b981,#059669)}
+.s-englisch{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
+
+/* ── TOPIC SCREEN ── */
+#s-topics .scroll{flex:1;overflow-y:auto;padding:18px}
+.topic-card{background:#fff;border:2px solid var(--pale);border-radius:16px;padding:16px 18px;margin-bottom:12px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .18s}
+.topic-card:active{transform:scale(.98);background:var(--warm)}
+.topic-ico{font-size:2rem;width:52px;height:52px;background:var(--pale);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.topic-info{flex:1}
+.topic-name{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--green)}
+.topic-desc{font-size:.78rem;color:var(--brown);margin-top:2px}
+.topic-prog-wrap{height:6px;background:var(--pale);border-radius:6px;margin-top:8px}
+.topic-prog-bar{height:6px;background:var(--green2);border-radius:6px;transition:width .4s}
+.topic-badge{background:var(--amber);color:#fff;font-size:.7rem;font-weight:800;padding:3px 10px;border-radius:50px;flex-shrink:0}
+
+/* ── EXERCISE SCREEN ── */
+#s-exercise{background:linear-gradient(160deg,#1a3a16,#2d5a27)}
+.ex-progress{padding:14px 18px 0;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.ex-prog-track{flex:1;height:10px;background:rgba(255,255,255,.2);border-radius:10px;overflow:hidden}
+.ex-prog-fill{height:100%;background:var(--amber);border-radius:10px;transition:width .4s}
+.ex-count{color:rgba(255,255,255,.7);font-size:.8rem;font-weight:700;flex-shrink:0}
+.ex-stars-row{display:flex;gap:6px;padding:10px 18px 0;flex-shrink:0}
+.ex-star{font-size:1.4rem;transition:transform .3s;filter:grayscale(1);opacity:.4}
+.ex-star.lit{filter:none;opacity:1;transform:scale(1.2)}
+
+.ex-lumio{display:flex;align-items:flex-start;gap:10px;padding:14px 18px;flex-shrink:0}
+.lumio-avatar{width:50px;height:50px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;animation:lumio-bob 2.5s ease-in-out infinite}
+@keyframes lumio-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.lumio-bubble{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:18px;border-top-left-radius:4px;padding:12px 16px;color:#fff;font-size:.95rem;line-height:1.5;font-weight:600;flex:1;backdrop-filter:blur(8px)}
+.lumio-speak{background:rgba(255,255,255,.15);border:none;border-radius:50%;width:32px;height:32px;color:#fff;font-size:1rem;cursor:pointer;flex-shrink:0;align-self:flex-end;margin-bottom:2px}
+
+.ex-content{flex:1;overflow-y:auto;padding:0 18px 18px;display:flex;flex-direction:column}
+
+/* Count Exercise */
+.count-objects{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:16px;background:rgba(255,255,255,.08);border-radius:20px;margin-bottom:18px;min-height:120px;align-content:center}
+.count-obj{font-size:2.8rem;animation:pop .2s ease;user-select:none}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+
+/* Answer buttons */
+.answers-grid{display:grid;gap:12px}
+.answers-grid.cols-2{grid-template-columns:1fr 1fr}
+.answers-grid.cols-4{grid-template-columns:1fr 1fr;gap:10px}
+.ans-btn{background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.25);border-radius:18px;padding:16px 10px;color:#fff;font-family:'Baloo 2',cursive;font-size:1.5rem;font-weight:900;cursor:pointer;transition:all .15s;text-align:center;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;min-height:70px}
+.ans-btn:active{transform:scale(.95)}
+.ans-btn.correct{background:#22c55e!important;border-color:#22c55e!important;animation:shake-good .3s}
+.ans-btn.wrong{background:#ef4444!important;border-color:#ef4444!important;animation:shake-bad .3s}
+.ans-btn.disabled{pointer-events:none}
+@keyframes shake-good{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes shake-bad{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* Image choice exercise */
+.img-choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.img-choice{background:rgba(255,255,255,.1);border:3px solid rgba(255,255,255,.2);border-radius:18px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .18s}
+.img-choice:active{transform:scale(.95)}
+.img-choice .ico{font-size:3rem;margin-bottom:8px}
+.img-choice .lbl{color:#fff;font-size:.85rem;font-weight:700}
+.img-choice.correct{border-color:#22c55e;background:rgba(34,197,94,.25)}
+.img-choice.wrong{border-color:#ef4444;background:rgba(239,68,68,.2)}
+
+/* Compare exercise */
+.compare-wrap{display:flex;align-items:center;justify-content:center;gap:20px;padding:20px;background:rgba(255,255,255,.08);border-radius:20px;margin-bottom:18px}
+.compare-num{font-family:'Baloo 2',cursive;font-size:4rem;font-weight:900;color:#fff;text-shadow:0 4px 12px rgba(0,0,0,.3)}
+.compare-vs{color:rgba(255,255,255,.5);font-size:1.5rem;font-weight:700}
+
+/* Feedback overlay */
+.feedback{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;pointer-events:none;opacity:0;transition:opacity .2s}
+.feedback.show{opacity:1;pointer-events:all}
+.feedback.correct-fb{background:rgba(34,197,94,.2)}
+.feedback.wrong-fb{background:rgba(239,68,68,.1)}
+.feedback-ico{font-size:5rem;animation:fb-pop .3s ease}
+.feedback-txt{font-family:'Baloo 2',cursive;font-size:1.8rem;font-weight:900;color:#fff;margin-top:10px;text-shadow:0 3px 10px rgba(0,0,0,.4)}
+@keyframes fb-pop{0%{transform:scale(0)}80%{transform:scale(1.2)}100%{transform:scale(1)}}
+
+/* ── RESULT SCREEN ── */
+#s-result{background:linear-gradient(135deg,#1a3a16,#4a8c3f);align-items:center;justify-content:center;padding:30px 20px;text-align:center}
+.result-stars{font-size:2.5rem;margin-bottom:16px;display:flex;gap:8px;justify-content:center}
+.result-title{font-family:'Baloo 2',cursive;font-size:2rem;font-weight:900;color:#fff;margin-bottom:8px}
+.result-sub{color:rgba(255,255,255,.8);font-size:1rem;margin-bottom:6px}
+.result-points{background:var(--amber);border-radius:50px;padding:10px 28px;font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:900;color:#fff;display:inline-block;margin:16px 0;box-shadow:0 6px 20px rgba(245,166,35,.4)}
+.result-btns{display:flex;flex-direction:column;gap:12px;width:100%;max-width:280px;margin-top:8px}
+.btn-big{padding:16px;border:none;border-radius:18px;font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;cursor:pointer;transition:transform .15s}
+.btn-big:active{transform:scale(.96)}
+.btn-green{background:var(--amber);color:#fff}
+.btn-outline{background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.3)!important}
+
+/* ── LUMIO CHAT ── */
+.lumio-fab{position:fixed;bottom:22px;right:18px;width:58px;height:58px;background:var(--amber);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;box-shadow:0 6px 20px rgba(245,166,35,.5);cursor:pointer;z-index:50;border:none;transition:transform .18s}
+.lumio-fab:active{transform:scale(.9)}
+.chat-panel{position:fixed;bottom:0;left:0;right:0;height:75vh;background:#1a3a16;border-radius:24px 24px 0 0;z-index:60;transform:translateY(100%);transition:transform .3s ease;display:flex;flex-direction:column}
+.chat-panel.open{transform:translateY(0)}
+.chat-drag{width:40px;height:4px;background:rgba(255,255,255,.3);border-radius:4px;margin:12px auto}
+.chat-title{color:#fff;font-family:'Baloo 2',cursive;font-weight:800;font-size:1.05rem;text-align:center;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.1)}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.chat-m{display:flex;gap:8px;align-items:flex-end}
+.chat-m.user{flex-direction:row-reverse}
+.chat-b{padding:10px 14px;border-radius:16px;font-size:.88rem;line-height:1.5;font-weight:600;max-width:80%}
+.chat-m.bot .chat-b{background:rgba(255,255,255,.1);color:#fff;border-bottom-left-radius:4px}
+.chat-m.user .chat-b{background:var(--amber);color:#fff;border-bottom-right-radius:4px}
+.chat-av{font-size:1.2rem;width:30px;height:30px;background:rgba(255,255,255,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-input-row{display:flex;gap:8px;padding:10px 14px 20px}
+.chat-inp{flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:11px 16px;color:#fff;font-size:.9rem;font-family:'Nunito',sans-serif;outline:none}
+.chat-inp::placeholder{color:rgba(255,255,255,.4)}
+.chat-send{background:var(--amber);border:none;border-radius:50%;width:42px;height:42px;color:#fff;font-size:1rem;cursor:pointer;flex-shrink:0}
+.chat-typing-ind{display:none;gap:5px;align-items:center;padding:8px 14px;background:rgba(255,255,255,.08);border-radius:14px;width:fit-content}
+.chat-typing-ind.show{display:flex}
+.td{width:6px;height:6px;background:rgba(255,255,255,.5);border-radius:50%;animation:tp 1.2s infinite}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+@keyframes tp{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.3);opacity:1}}
+
+/* ── INTRO ── */
+#s-intro{align-items:center;justify-content:center;padding:30px 24px;text-align:center;background:linear-gradient(160deg,#1a3a16,#4a8c3f)}
+.intro-owl{font-size:5rem;animation:lumio-bob 2.5s ease-in-out infinite;margin-bottom:20px}
+.intro-title{font-family:'Baloo 2',cursive;font-size:2rem;font-weight:900;color:#fff;margin-bottom:10px}
+.intro-sub{color:rgba(255,255,255,.8);font-size:1rem;line-height:1.6;margin-bottom:30px}
+.name-input{width:100%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);border-radius:18px;padding:14px 18px;color:#fff;font-size:1.1rem;font-family:'Baloo 2',cursive;font-weight:700;text-align:center;outline:none;margin-bottom:16px}
+.name-input::placeholder{color:rgba(255,255,255,.4)}
+.intro-grades{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;width:100%}
+.ig-btn{background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.2);border-radius:14px;padding:14px;color:#fff;font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;cursor:pointer;transition:all .15s;text-align:center}
+.ig-btn.sel{background:var(--amber);border-color:var(--amber)}
+.ig-btn:active{transform:scale(.95)}
+
+/* ── STREAK ── */
+.streak-bar{background:rgba(255,255,255,.08);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.streak-ico{font-size:1.2rem}
+.streak-txt{color:rgba(255,255,255,.8);font-size:.8rem;font-weight:700;flex:1}
+.streak-days{display:flex;gap:4px}
+.streak-day{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.15);font-size:.6rem;display:flex;align-items:center;justify-content:center}
+.streak-day.done{background:var(--amber)}
+</style>
+</head>
+<body>
+
+<!-- INTRO / SETUP -->
+<div class="screen active" id="s-intro">
+  <div class="intro-owl">🦉</div>
+  <h1 class="intro-title">Hallo! Ich bin Lumio!</h1>
+  <p class="intro-sub">Dein Lern-Freund im Zauberwald ✨<br>Wie heißt du?</p>
+  <input class="name-input" id="player-name" placeholder="Dein Name..." maxlength="15" autocomplete="off">
+  <p style="color:rgba(255,255,255,.7);font-size:.85rem;font-weight:700;margin-bottom:12px">In welcher Klasse bist du?</p>
+  <div class="intro-grades">
+    <button class="ig-btn sel" onclick="selectGrade(1,this)">🌱 Klasse 1</button>
+    <button class="ig-btn" onclick="selectGrade(2,this)">🌿 Klasse 2</button>
+    <button class="ig-btn" onclick="selectGrade(3,this)">🌳 Klasse 3</button>
+    <button class="ig-btn" onclick="selectGrade(4,this)">🌲 Klasse 4</button>
+  </div>
+  <button class="btn-big btn-green" style="width:100%;max-width:300px" onclick="startApp()">Los geht's! 🎒</button>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="s-home">
+  <div class="topbar">
+    <div class="topbar-logo">🦉 WaldWissen</div>
+    <div class="topbar-right">
+      <div class="stars-badge">⭐ <span id="total-stars">0</span></div>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="welcome-hero">
+      <div class="welcome-lumio">🦉</div>
+      <div class="welcome-title">Hey <span id="hero-name">Freund</span>! 👋</div>
+      <div class="welcome-sub">Was möchtest du heute lernen?<br>Du schaffst das! ⭐</div>
+    </div>
+    <div class="section-head">📚 Fächer — <span id="home-grade">Klasse 1</span></div>
+    <div class="subject-grid" id="subject-grid"></div>
+  </div>
+</div>
+
+<!-- TOPICS -->
+<div class="screen" id="s-topics">
+  <div class="topbar">
+    <button class="btn-back" onclick="showScreen('s-home')">← Zurück</button>
+    <div class="topbar-logo" id="topic-title">Mathe</div>
+    <div class="stars-badge">⭐ <span id="topic-stars">0</span></div>
+  </div>
+  <div class="scroll" id="topics-list" style="flex:1;overflow-y:auto;padding:16px"></div>
+</div>
+
+<!-- EXERCISE -->
+<div class="screen" id="s-exercise">
+  <div class="topbar">
+    <button class="btn-back" id="ex-back-btn" onclick="exitExercise()">✕</button>
+    <div class="topbar-logo" id="ex-title">Üben</div>
+    <div class="stars-badge">⭐ <span id="ex-stars">0</span></div>
+  </div>
+  <div class="ex-progress">
+    <div class="ex-prog-track"><div class="ex-prog-fill" id="ex-prog" style="width:0%"></div></div>
+    <div class="ex-count" id="ex-count">1/5</div>
+  </div>
+  <div class="ex-stars-row" id="ex-stars-row">
+    <span class="ex-star" id="st0">⭐</span>
+    <span class="ex-star" id="st1">⭐</span>
+    <span class="ex-star" id="st2">⭐</span>
+  </div>
+  <div class="ex-lumio">
+    <div class="lumio-avatar">🦉</div>
+    <div class="lumio-bubble" id="lumio-q">Was ist die Frage?</div>
+    <button class="lumio-speak" onclick="speak(document.getElementById('lumio-q').textContent)" title="Vorlesen">🔊</button>
+  </div>
+  <div class="ex-content" id="ex-content"></div>
+  <div class="feedback" id="feedback">
+    <div class="feedback-ico" id="fb-ico">✅</div>
+    <div class="feedback-txt" id="fb-txt">Super!</div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="s-result">
+  <div class="result-stars" id="result-stars">⭐⭐⭐</div>
+  <div class="result-title" id="result-title">Super gemacht! 🎉</div>
+  <div class="result-sub" id="result-sub">Du hast 5 von 5 richtig!</div>
+  <div class="result-points" id="result-pts">+30 Waldpunkte ⭐</div>
+  <div class="result-btns">
+    <button class="btn-big btn-green" onclick="nextTopic()">Nächste Lektion 🎒</button>
+    <button class="btn-big btn-outline" onclick="showScreen('s-home')" style="border:2px solid rgba(255,255,255,.3)">Zur Übersicht</button>
+  </div>
+</div>
+
+<!-- LUMIO CHAT FAB -->
+<button class="lumio-fab" id="lumio-fab" onclick="toggleChat()" style="display:none">🦉</button>
+<div class="chat-panel" id="chat-panel">
+  <div class="chat-drag"></div>
+  <div class="chat-title">🦉 Frag Lumio!</div>
+  <div class="chat-msgs" id="chat-msgs">
+    <div class="chat-m bot"><div class="chat-av">🦉</div><div class="chat-b">Hallo! Ich bin Lumio 🦉✨ Stell mir eine Frage!</div></div>
+  </div>
+  <div class="chat-typing-ind" id="chat-typing"><div class="td"></div><div class="td"></div><div class="td"></div></div>
+  <div class="chat-input-row">
+    <input class="chat-inp" id="chat-inp" placeholder="Frag Lumio..." onkeydown="if(event.key==='Enter')chatSend()">
+    <button class="chat-send" onclick="chatSend()">✈️</button>
+  </div>
+</div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════╗
+// ║  STATE                                                   ║
+// ╚══════════════════════════════════════════════════════════╝
+let state = {
+  name: 'Freund',
+  grade: 1,
+  stars: 0,
+  progress: {}, // topicId -> {done, correct}
+  currentSubject: null,
+  currentTopicIdx: 0,
+  currentExercises: [],
+  currentEx: 0,
+  exCorrect: 0,
+  chatHistory: []
+};
+
+function save(){localStorage.setItem('ww_state',JSON.stringify(state));}
+function load(){
+  const s=localStorage.getItem('ww_state');
+  if(s){Object.assign(state,JSON.parse(s));}
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  CONTENT DATABASE                                        ║
+// ╚══════════════════════════════════════════════════════════╝
+const SUBJECTS = {
+  mathe:{name:'Mathe',emoji:'🔢',cls:'s-mathe',color:'#ef4444'},
+  deutsch:{name:'Deutsch',emoji:'📖',cls:'s-deutsch',color:'#3b82f6'},
+  sachkunde:{name:'Sachkunde',emoji:'🌍',cls:'s-sachkunde',color:'#10b981'},
+  englisch:{name:'Englisch',emoji:'🇬🇧',cls:'s-englisch',color:'#8b5cf6'}
+};
+
+const TOPICS = {
+  1: { // Klasse 1
+    mathe:[
+      {id:'m1_1',name:'Zahlen 1–5',ico:'🔢',desc:'Zähle und erkenne Zahlen bis 5',exercises:makeCount(1,5)},
+      {id:'m1_2',name:'Zahlen 1–10',ico:'🔟',desc:'Zähle und erkenne Zahlen bis 10',exercises:makeCount(6,10)},
+      {id:'m1_3',name:'Größer oder kleiner?',ico:'⚖️',desc:'Welche Zahl ist größer?',exercises:makeCompare(1,10)},
+      {id:'m1_4',name:'Einfaches Addieren',ico:'➕',desc:'Addiere kleine Zahlen',exercises:makeAdd(1,5)},
+      {id:'m1_5',name:'Formen erkennen',ico:'🔷',desc:'Welche Form ist das?',exercises:makeForms()},
+    ],
+    deutsch:[
+      {id:'d1_1',name:'Buchstabe A–E',ico:'🔤',desc:'Erkenne die ersten Buchstaben',exercises:makeLetters(['A','B','C','D','E'])},
+      {id:'d1_2',name:'Buchstabe F–K',ico:'🔤',desc:'Weitere Buchstaben lernen',exercises:makeLetters(['F','G','H','I','J','K'])},
+      {id:'d1_3',name:'Tiere & Namen',ico:'🐾',desc:'Welches Tier ist das?',exercises:makeAnimals()},
+      {id:'d1_4',name:'Farben',ico:'🎨',desc:'Erkenne alle Farben',exercises:makeColors()},
+    ],
+    sachkunde:[
+      {id:'s1_1',name:'Tiere im Wald',ico:'🌲',desc:'Welche Tiere leben im Wald?',exercises:makeForestAnimals()},
+      {id:'s1_2',name:'Jahreszeiten',ico:'🍂',desc:'Was gehört zu welcher Jahreszeit?',exercises:makeSeasons()},
+      {id:'s1_3',name:'Körperteile',ico:'🧍',desc:'Zeige die richtigen Körperteile',exercises:makeBodyParts()},
+      {id:'s1_4',name:'Obst & Gemüse',ico:'🍎',desc:'Erkenne Obst und Gemüse',exercises:makeFruitVeg()},
+    ],
+    englisch:[
+      {id:'e1_1',name:'Numbers 1–10',ico:'🔢',desc:'Zahlen auf Englisch',exercises:makeEngNumbers()},
+      {id:'e1_2',name:'Colors',ico:'🌈',desc:'Farben auf Englisch',exercises:makeEngColors()},
+      {id:'e1_3',name:'Animals',ico:'🐘',desc:'Tiere auf Englisch',exercises:makeEngAnimals()},
+    ]
+  },
+  2: { // Klasse 2
+    mathe:[
+      {id:'m2_1',name:'Zahlen bis 100',ico:'💯',desc:'Zähle und rechne bis 100',exercises:makeCount(11,30)},
+      {id:'m2_2',name:'Einmaleins 1-5',ico:'✖️',desc:'Das kleine Einmaleins',exercises:makeMult(1,5)},
+      {id:'m2_3',name:'Einmaleins 6-10',ico:'✖️',desc:'Das große Einmaleins',exercises:makeMult(6,10)},
+      {id:'m2_4',name:'Subtrahieren',ico:'➖',desc:'Abziehen lernen',exercises:makeSub(1,20)},
+    ],
+    deutsch:[
+      {id:'d2_1',name:'Nomen erkennen',ico:'📝',desc:'Was ist ein Nomen?',exercises:makeNomen()},
+      {id:'d2_2',name:'Großschreibung',ico:'🔠',desc:'Wann schreibe ich groß?',exercises:makeGross()},
+      {id:'d2_3',name:'Tiere & Laute',ico:'🎵',desc:'Welches Tier macht welchen Laut?',exercises:makeAnimalSounds()},
+    ],
+    sachkunde:[
+      {id:'s2_1',name:'Wetter',ico:'☁️',desc:'Was ist welches Wetter?',exercises:makeWeather()},
+      {id:'s2_2',name:'Berufe',ico:'👷',desc:'Welcher Beruf ist das?',exercises:makeJobs()},
+    ],
+    englisch:[
+      {id:'e2_1',name:'Family',ico:'👨‍👩‍👧',desc:'Familie auf Englisch',exercises:makeEngFamily()},
+      {id:'e2_2',name:'School things',ico:'🎒',desc:'Schulsachen auf Englisch',exercises:makeEngSchool()},
+    ]
+  }
+};
+// Klassen 3+4 = Klasse 2 Topics (placeholder)
+TOPICS[3]=TOPICS[2];TOPICS[4]=TOPICS[2];
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  EXERCISE GENERATORS                                     ║
+// ╚══════════════════════════════════════════════════════════╝
+function shuffle(a){return a.sort(()=>Math.random()-.5);}
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function wrongNums(correct,min,max,count=3){
+  const s=new Set([correct]);
+  while(s.size<count+1){const n=rnd(min,max);if(n!==correct)s.add(n);}
+  return shuffle([...s]);
+}
+
+// Count objects
+const COUNTABLES=[
+  {e:'🍎',n:'Äpfel'},{e:'⭐',n:'Sterne'},{e:'🌸',n:'Blumen'},{e:'🐟',n:'Fische'},
+  {e:'🦋',n:'Schmetterlinge'},{e:'🍕',n:'Pizzastücke'},{e:'🎈',n:'Luftballons'},
+  {e:'🐸',n:'Frösche'},{e:'🍦',n:'Eiskugeln'},{e:'🦊',n:'Füchse'}
+];
+function makeCount(min,max){
+  const exs=[];
+  for(let i=0;i<8;i++){
+    const obj=COUNTABLES[i%COUNTABLES.length];
+    const count=rnd(min,max);
+    exs.push({
+      type:'count',
+      question:`Wie viele ${obj.n} siehst du? 🔢`,
+      objects:Array(count).fill(obj.e),
+      answers:wrongNums(count,Math.max(1,min-1),max+2),
+      correct:count
+    });
+  }
+  return exs;
+}
+
+function makeCompare(min,max){
+  const exs=[];
+  for(let i=0;i<8;i++){
+    let a=rnd(min,max),b=rnd(min,max);
+    while(b===a)b=rnd(min,max);
+    const bigger=Math.max(a,b);
+    exs.push({
+      type:'compare',
+      question:`Welche Zahl ist größer? 🤔`,
+      numA:a,numB:b,
+      answers:[a,b],
+      correct:bigger
+    });
+  }
+  return exs;
+}
+
+function makeAdd(min,max){
+  const exs=[];
+  for(let i=0;i<8;i++){
+    const a=rnd(min,max),b=rnd(min,max);
+    const sum=a+b;
+    exs.push({
+      type:'count',
+      question:`${a} + ${b} = ? ➕`,
+      objects:[...Array(a).fill('🔵'),...Array(b).fill('🔴')],
+      answers:wrongNums(sum,Math.max(0,sum-3),sum+3),
+      correct:sum
+    });
+  }
+  return exs;
+}
+
+function makeSub(min,max){
+  const exs=[];
+  for(let i=0;i<8;i++){
+    let a=rnd(min+2,max),b=rnd(min,a-1);
+    const diff=a-b;
+    exs.push({
+      type:'count',
+      question:`${a} − ${b} = ? ➖`,
+      objects:Array(a).fill('🔵'),
+      highlight:b,
+      answers:wrongNums(diff,Math.max(0,diff-3),diff+4),
+      correct:diff
+    });
+  }
+  return exs;
+}
+
+function makeMult(rFrom,rTo){
+  const exs=[];
+  for(let i=0;i<8;i++){
+    const a=rnd(rFrom,rTo),b=rnd(1,10);
+    const prod=a*b;
+    exs.push({
+      type:'count',
+      question:`${a} × ${b} = ? ✖️`,
+      objects:Array(Math.min(prod,20)).fill('⭐'),
+      answers:wrongNums(prod,Math.max(0,prod-5),prod+10),
+      correct:prod
+    });
+  }
+  return exs;
+}
+
+function makeForms(){
+  const forms=[
+    {e:'🔴',n:'Kreis'},{e:'🟥',n:'Rechteck'},{e:'🔷',n:'Raute'},
+    {e:'🔺',n:'Dreieck'},{e:'⬡',n:'Sechseck'}
+  ];
+  return forms.map(f=>{
+    const wrong=shuffle(forms.filter(x=>x.n!==f.n)).slice(0,3);
+    return{type:'choice',question:`Welche Form ist das?`,mainEmoji:f.e,
+      choices:shuffle([{e:f.e,l:f.n},...wrong.map(w=>({e:w.e,l:w.n}))]),correct:f.n};
+  });
+}
+
+function makeLetters(letters){
+  const words={A:'Apfel 🍎',B:'Ball ⚽',C:'Computer 💻',D:'Dino 🦕',E:'Elefant 🐘',
+    F:'Fisch 🐟',G:'Giraffe 🦒',H:'Hund 🐕',I:'Igel 🦔',J:'Jaguar 🐆',K:'Katze 🐱'};
+  return letters.map(l=>{
+    const wrong=shuffle(Object.keys(words).filter(x=>x!==l)).slice(0,3);
+    return{type:'choice',question:`${words[l]} — mit welchem Buchstaben fängt das an? 🔤`,
+      mainEmoji:words[l].split(' ')[1]||'📖',
+      choices:shuffle([{e:'📝',l},{...wrong.map(w=>({e:'📝',l:w}))}].flat()),
+      correct:l,textChoices:true};
+  });
+}
+
+function makeAnimals(){
+  const a=[{e:'🐶',n:'Hund'},{e:'🐱',n:'Katze'},{e:'🐘',n:'Elefant'},{e:'🐸',n:'Frosch'},
+    {e:'🐧',n:'Pinguin'},{e:'🦊',n:'Fuchs'},{e:'🐮',n:'Kuh'},{e:'🐻',n:'Bär'}];
+  return a.map(x=>{
+    const wrong=shuffle(a.filter(y=>y.n!==x.n)).slice(0,3);
+    return{type:'choice',question:`Was ist das? 🐾`,mainEmoji:x.e,
+      choices:shuffle([{e:x.e,l:x.n},...wrong.map(w=>({e:w.e,l:w.n}))]),correct:x.n};
+  });
+}
+
+function makeColors(){
+  const c=[{e:'🔴',n:'Rot'},{e:'🔵',n:'Blau'},{e:'🟢',n:'Grün'},{e:'🟡',n:'Gelb'},
+    {e:'🟠',n:'Orange'},{e:'🟣',n:'Lila'}];
+  return c.map(x=>{
+    const wrong=shuffle(c.filter(y=>y.n!==x.n)).slice(0,3);
+    return{type:'choice',question:`Welche Farbe ist das? 🎨`,mainEmoji:x.e,
+      choices:shuffle([{e:x.e,l:x.n},...wrong.map(w=>({e:w.e,l:w.n}))]),correct:x.n};
+  });
+}
+
+function makeForestAnimals(){
+  const a=[{e:'🦊',n:'Fuchs',forest:true},{e:'🐺',n:'Wolf',forest:true},
+    {e:'🦌',n:'Reh',forest:true},{e:'🐗',n:'Wildschwein',forest:true},
+    {e:'🐧',n:'Pinguin',forest:false},{e:'🐬',n:'Delfin',forest:false},
+    {e:'🦁',n:'Löwe',forest:false},{e:'🐊',n:'Krokodil',forest:false}];
+  const exs=[];
+  for(let i=0;i<6;i++){
+    const pick=shuffle(a).slice(0,4);
+    const correct=pick.filter(x=>x.forest)[0]||pick[0];
+    exs.push({type:'choice',question:'Welches Tier lebt im Wald? 🌲',mainEmoji:'🌲',
+      choices:pick.map(x=>({e:x.e,l:x.n})),correct:correct.n});
+  }
+  return exs;
+}
+
+function makeSeasons(){
+  const s=[
+    {season:'Frühling',items:[{e:'🌸',l:'Blüten'},{e:'🌱',l:'Gras'},{e:'🐣',l:'Küken'}]},
+    {season:'Sommer',items:[{e:'☀️',l:'Sonne'},{e:'🏖️',l:'Strand'},{e:'🍦',l:'Eis'}]},
+    {season:'Herbst',items:[{e:'🍂',l:'Blätter'},{e:'🎃',l:'Kürbis'},{e:'🍄',l:'Pilz'}]},
+    {season:'Winter',items:[{e:'❄️',l:'Schnee'},{e:'⛄',l:'Schneemann'},{e:'🧣',l:'Schal'}]}
+  ];
+  const exs=[];
+  s.forEach(se=>{
+    se.items.forEach(item=>{
+      const wrongSeasons=shuffle(s.filter(x=>x.season!==se.season)).slice(0,3);
+      exs.push({type:'choice',question:`${item.e} ${item.l} — welche Jahreszeit ist das?`,
+        mainEmoji:item.e,
+        choices:shuffle([{e:'📅',l:se.season},...wrongSeasons.map(w=>({e:'📅',l:w.season}))]),
+        correct:se.season,textChoices:true});
+    });
+  });
+  return shuffle(exs).slice(0,8);
+}
+
+function makeBodyParts(){
+  const p=[{e:'👁️',n:'Auge'},{e:'👂',n:'Ohr'},{e:'👃',n:'Nase'},
+    {e:'👋',n:'Hand'},{e:'🦵',n:'Bein'},{e:'🦷',n:'Zahn'}];
+  return p.map(x=>{
+    const wrong=shuffle(p.filter(y=>y.n!==x.n)).slice(0,3);
+    return{type:'choice',question:`Was ist das? 🧍`,mainEmoji:x.e,
+      choices:shuffle([{e:x.e,l:x.n},...wrong.map(w=>({e:w.e,l:w.n}))]),correct:x.n};
+  });
+}
+
+function makeFruitVeg(){
+  const f=[{e:'🍎',n:'Apfel',fruit:true},{e:'🍌',n:'Banane',fruit:true},
+    {e:'🍓',n:'Erdbeere',fruit:true},{e:'🥕',n:'Karotte',fruit:false},
+    {e:'🥦',n:'Brokkoli',fruit:false},{e:'🍆',n:'Aubergine',fruit:false}];
+  return f.map(x=>{
+    const wrong=shuffle(f.filter(y=>y.n!==x.n)).slice(0,3);
+    return{type:'choice',question:'Was ist das? 🥗',mainEmoji:x.e,
+      choices:shuffle([{e:x.e,l:x.n},...wrong.map(w=>({e:w.e,l:w.n}))]),correct:x.n};
+  });
+}
+
+function makeEngNumbers(){
+  const nums=[{n:1,l:'one'},{n:2,l:'two'},{n:3,l:'three'},{n:4,l:'four'},{n:5,l:'five'},
+    {n:6,l:'six'},{n:7,l:'seven'},{n:8,l:'eight'},{n:9,l:'nine'},{n:10,l:'ten'}];
+  return nums.slice(0,8).map(x=>{
+    const wrong=shuffle(nums.filter(y=>y.l!==x.l)).slice(0,3);
+    return{type:'count',question:`How many? 🔢`,
+      objects:Array(x.n).fill('⭐'),
+      answers:shuffle([x.l,...wrong.map(w=>w.l)]),
+      correct:x.l,textAnswers:true};
+  });
+}
+
+function makeEngColors(){
+  const c=[{e:'🔴',n:'red'},{e:'🔵',n:'blue'},{e:'🟢',n:'green'},{e:'🟡',n:'yellow'},
+    {e:'🟠',n:'orange'},{e:'🟣',n:'purple'}];
+  return c.map(x=>{
+    const wrong=shuffle(c.filter(y=>y.n!==x.n)).slice(0,3);
+    return{type:'choice',question:`What color is this? 🌈`,mainEmoji:x.e,
+      choices:shuffle([{e:x.e,l:x.n},...wrong.map(w=>({e:w.e,l:w.n}))]),correct:x.n};
+  });
+}
+
+function makeEngAnimals(){
+  const a=[{e:'🐶',n:'dog'},{e:'🐱',n:'cat'},{e:'🐘',n:'elephant'},
+    {e:'🦁',n:'lion'},{e:'🐸',n:'frog'},{e:'🐧',n:'penguin'}];
+  return a.map(x=>{
+    const wrong=shuffle(a.filter(y=>y.n!==x.n)).slice(0,3);
+    return{type:'choice',question:`What is this? 🐾`,mainEmoji:x.e,
+      choices:shuffle([{e:x.e,l:x.n},...wrong.map(w=>({e:w.e,l:w.n}))]),correct:x.n};
+  });
+}
+
+function makeNomen(){
+  const words=[{w:'Hund',nomen:true},{w:'Katze',nomen:true},{w:'Schule',nomen:true},
+    {w:'laufen',nomen:false},{w:'schön',nomen:false},{w:'rennen',nomen:false},
+    {w:'Buch',nomen:true},{w:'essen',nomen:false}];
+  return words.map(x=>({
+    type:'yesno',question:`Ist "${x.w}" ein Nomen? (Nomen = Dingwort 📝)`,
+    mainEmoji:x.nomen?'📚':'🏃',correct:x.nomen?'Ja, Nomen!':'Nein!'
+  }));
+}
+
+function makeGross(){
+  const w=[{w:'Hund',gross:true},{w:'laufen',gross:false},{w:'Schule',gross:true},
+    {w:'schön',gross:false},{w:'Apfel',gross:true},{w:'rennen',gross:false}];
+  return w.map(x=>({
+    type:'yesno',question:`Schreibt man "${x.w.toLowerCase()}" groß? 🔠`,
+    mainEmoji:x.gross?'🔠':'🔡',correct:x.gross?'Ja! Groß!':'Nein! Klein.'
+  }));
+}
+
+function makeAnimalSounds(){
+  const a=[{e:'🐶',n:'Hund',sound:'Wau!'},{e:'🐱',n:'Katze',sound:'Miau!'},
+    {e:'🐄',n:'Kuh',sound:'Muh!'},{e:'🐸',n:'Frosch',sound:'Quak!'},
+    {e:'🐑',n:'Schaf',sound:'Bäh!'}];
+  return a.map(x=>{
+    const wrong=shuffle(a.filter(y=>y.n!==x.n)).slice(0,3);
+    return{type:'choice',question:`Dieses Tier sagt: "${x.sound}" 🎵\nWelches Tier ist das?`,
+      mainEmoji:'🎵',choices:shuffle([{e:x.e,l:x.n},...wrong.map(w=>({e:w.e,l:w.n}))]),correct:x.n};
+  });
+}
+
+function makeWeather(){
+  const w=[{e:'☀️',n:'Sonnig'},{e:'🌧️',n:'Regnerisch'},{e:'❄️',n:'Schnee'},
+    {e:'⛈️',n:'Gewitter'},{e:'🌈',n:'Regenbogen'},{e:'🌬️',n:'Windig'}];
+  return w.map(x=>{
+    const wrong=shuffle(w.filter(y=>y.n!==x.n)).slice(0,3);
+    return{type:'choice',question:'Welches Wetter ist das? ☁️',mainEmoji:x.e,
+      choices:shuffle([{e:x.e,l:x.n},...wrong.map(w=>({e:w.e,l:w.n}))]),correct:x.n};
+  });
+}
+
+function makeJobs(){
+  const j=[{e:'👨‍🚒',n:'Feuerwehrmann'},{e:'👨‍⚕️',n:'Arzt'},{e:'👨‍🍳',n:'Koch'},
+    {e:'👮',n:'Polizist'},{e:'👨‍🏫',n:'Lehrer'},{e:'👨‍✈️',n:'Pilot'}];
+  return j.map(x=>{
+    const wrong=shuffle(j.filter(y=>y.n!==x.n)).slice(0,3);
+    return{type:'choice',question:'Welcher Beruf ist das? 👷',mainEmoji:x.e,
+      choices:shuffle([{e:x.e,l:x.n},...wrong.map(w=>({e:w.e,l:w.n}))]),correct:x.n};
+  });
+}
+
+function makeEngFamily(){
+  const f=[{e:'👨',n:'father'},{e:'👩',n:'mother'},{e:'👧',n:'sister'},
+    {e:'👦',n:'brother'},{e:'👴',n:'grandfather'},{e:'👵',n:'grandmother'}];
+  return f.map(x=>{
+    const wrong=shuffle(f.filter(y=>y.n!==x.n)).slice(0,3);
+    return{type:'choice',question:'Who is this? 👨‍👩‍👧',mainEmoji:x.e,
+      choices:shuffle([{e:x.e,l:x.n},...wrong.map(w=>({e:w.e,l:w.n}))]),correct:x.n};
+  });
+}
+
+function makeEngSchool(){
+  const s=[{e:'📚',n:'books'},{e:'✏️',n:'pencil'},{e:'📐',n:'ruler'},
+    {e:'🎒',n:'schoolbag'},{e:'📏',n:'ruler'},{e:'🖊️',n:'pen'}];
+  return s.map(x=>{
+    const wrong=shuffle(s.filter(y=>y.n!==x.n)).slice(0,3);
+    return{type:'choice',question:'What is this? 🏫',mainEmoji:x.e,
+      choices:shuffle([{e:x.e,l:x.n},...wrong.map(w=>({e:w.e,l:w.n}))]),correct:x.n};
+  });
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SCREENS                                                 ║
+// ╚══════════════════════════════════════════════════════════╝
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const fab=document.getElementById('lumio-fab');
+  fab.style.display=(id==='s-home'||id==='s-topics')?'flex':'none';
+}
+
+function startApp(){
+  const name=document.getElementById('player-name').value.trim()||'Freund';
+  state.name=name;
+  save();
+  load();
+  document.getElementById('hero-name').textContent=state.name;
+  document.getElementById('total-stars').textContent=state.stars;
+  buildHome();
+  showScreen('s-home');
+  speak(`Hallo ${state.name}! Schön dass du da bist! Was möchtest du heute lernen?`);
+}
+
+function selectGrade(g,btn){
+  state.grade=g;
+  document.querySelectorAll('.ig-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
+function buildHome(){
+  const grid=document.getElementById('subject-grid');
+  document.getElementById('home-grade').textContent=`Klasse ${state.grade}`;
+  grid.innerHTML='';
+  const topics=TOPICS[state.grade]||TOPICS[1];
+  Object.entries(SUBJECTS).forEach(([key,sub])=>{
+    const topicList=topics[key]||[];
+    const done=topicList.filter(t=>state.progress[t.id]?.done).length;
+    const card=document.createElement('div');
+    card.className=`subject-card ${sub.cls}`;
+    card.innerHTML=`
+      <div class="subject-icon">${sub.emoji}</div>
+      <div class="subject-name">${sub.name}</div>
+      <div class="subject-count">${done}/${topicList.length} Lektionen ✓</div>
+      <div class="subject-prog" style="width:${topicList.length?done/topicList.length*100:0}%"></div>`;
+    card.onclick=()=>openSubject(key);
+    grid.appendChild(card);
+  });
+}
+
+function openSubject(key){
+  state.currentSubject=key;
+  const sub=SUBJECTS[key];
+  document.getElementById('topic-title').textContent=`${sub.emoji} ${sub.name}`;
+  document.getElementById('topic-stars').textContent=state.stars;
+  const topics=(TOPICS[state.grade]||TOPICS[1])[key]||[];
+  const list=document.getElementById('topics-list');
+  list.innerHTML='';
+  topics.forEach((t,i)=>{
+    const prog=state.progress[t.id];
+    const done=prog?.done;
+    const pct=done?100:0;
+    const card=document.createElement('div');
+    card.className='topic-card';
+    card.innerHTML=`
+      <div class="topic-ico">${t.ico}</div>
+      <div class="topic-info">
+        <div class="topic-name">${t.name}</div>
+        <div class="topic-desc">${t.desc}</div>
+        <div class="topic-prog-wrap"><div class="topic-prog-bar" style="width:${pct}%"></div></div>
+      </div>
+      ${done?'<div class="topic-badge">✓ Fertig</div>':''}`;
+    card.onclick=()=>startTopic(i);
+    list.appendChild(card);
+  });
+  showScreen('s-topics');
+}
+
+function startTopic(idx){
+  const topics=(TOPICS[state.grade]||TOPICS[1])[state.currentSubject]||[];
+  const topic=topics[idx];
+  if(!topic)return;
+  state.currentTopicIdx=idx;
+  state.currentExercises=shuffle([...topic.exercises]).slice(0,5);
+  state.currentEx=0;
+  state.exCorrect=0;
+  document.getElementById('ex-title').textContent=`${topic.ico} ${topic.name}`;
+  document.getElementById('ex-stars').textContent=state.stars;
+  // Reset stars
+  [0,1,2].forEach(i=>{document.getElementById('st'+i).classList.remove('lit');});
+  showScreen('s-exercise');
+  renderExercise();
+  speak(state.currentExercises[0].question);
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  EXERCISE RENDERER                                       ║
+// ╚══════════════════════════════════════════════════════════╝
+function renderExercise(){
+  const ex=state.currentExercises[state.currentEx];
+  if(!ex)return;
+  const total=state.currentExercises.length;
+  const pct=((state.currentEx)/total)*100;
+  document.getElementById('ex-prog').style.width=pct+'%';
+  document.getElementById('ex-count').textContent=`${state.currentEx+1}/${total}`;
+  document.getElementById('lumio-q').textContent=ex.question;
+  const content=document.getElementById('ex-content');
+  content.innerHTML='';
+
+  if(ex.type==='count'){renderCount(ex,content);}
+  else if(ex.type==='choice'){renderChoice(ex,content);}
+  else if(ex.type==='compare'){renderCompare(ex,content);}
+  else if(ex.type==='yesno'){renderYesNo(ex,content);}
+}
+
+function renderCount(ex,el){
+  // Objects display
+  const objWrap=document.createElement('div');
+  objWrap.className='count-objects';
+  ex.objects.forEach((o,i)=>{
+    const span=document.createElement('span');
+    span.className='count-obj';
+    span.textContent=o;
+    span.style.animationDelay=(i*0.05)+'s';
+    if(ex.highlight&&i>=ex.objects.length-ex.highlight){
+      span.style.opacity='.35';span.style.textDecoration='line-through';
+    }
+    objWrap.appendChild(span);
+  });
+  el.appendChild(objWrap);
+
+  // Answer buttons
+  const grid=document.createElement('div');
+  grid.className='answers-grid cols-2';
+  ex.answers.forEach(a=>{
+    const btn=document.createElement('button');
+    btn.className='ans-btn';
+    btn.textContent=a;
+    btn.onclick=()=>checkAnswer(a,ex.correct,btn,grid);
+    grid.appendChild(btn);
+  });
+  el.appendChild(grid);
+}
+
+function renderChoice(ex,el){
+  // Main visual
+  if(ex.mainEmoji){
+    const big=document.createElement('div');
+    big.style.cssText='font-size:4rem;text-align:center;margin:10px 0 18px;animation:pop .3s ease';
+    big.textContent=ex.mainEmoji;
+    el.appendChild(big);
+  }
+  const grid=document.createElement('div');
+  grid.className='img-choices';
+  ex.choices.forEach(c=>{
+    const btn=document.createElement('div');
+    btn.className='img-choice';
+    btn.innerHTML=`<div class="ico">${c.e||'📝'}</div><div class="lbl">${c.l}</div>`;
+    btn.onclick=()=>checkAnswer(c.l,ex.correct,btn,grid,'img-choice');
+    grid.appendChild(btn);
+  });
+  el.appendChild(grid);
+}
+
+function renderCompare(ex,el){
+  const wrap=document.createElement('div');
+  wrap.className='compare-wrap';
+  wrap.innerHTML=`<div class="compare-num">${ex.numA}</div><div class="compare-vs">oder</div><div class="compare-num">${ex.numB}</div>`;
+  el.appendChild(wrap);
+  const grid=document.createElement('div');
+  grid.className='answers-grid cols-2';
+  ex.answers.forEach(a=>{
+    const btn=document.createElement('button');
+    btn.className='ans-btn';
+    btn.style.fontSize='2.2rem';
+    btn.textContent=a;
+    btn.onclick=()=>checkAnswer(a,ex.correct,btn,grid);
+    grid.appendChild(btn);
+  });
+  el.appendChild(grid);
+}
+
+function renderYesNo(ex,el){
+  if(ex.mainEmoji){
+    const big=document.createElement('div');
+    big.style.cssText='font-size:4rem;text-align:center;margin:10px 0 18px';
+    big.textContent=ex.mainEmoji;
+    el.appendChild(big);
+  }
+  const grid=document.createElement('div');
+  grid.className='answers-grid cols-2';
+  ['Ja, Nomen!','Nein!','Ja! Groß!','Nein! Klein.','Ja!','Nein'].forEach(opt=>{
+    if(![ex.correct,'Ja! Groß!','Nein! Klein.','Ja, Nomen!','Nein!'].includes(opt))return;
+    const btn=document.createElement('button');
+    btn.className='ans-btn';
+    btn.style.fontSize='1.1rem';
+    btn.textContent=opt;
+    btn.onclick=()=>checkAnswer(opt,ex.correct,btn,grid);
+    grid.appendChild(btn);
+  });
+  // Fallback if grid empty
+  if(grid.children.length<2){
+    ['Ja!','Nein!'].forEach(opt=>{
+      const btn=document.createElement('button');
+      btn.className='ans-btn';btn.style.fontSize='1.2rem';btn.textContent=opt;
+      const isCorrect=ex.correct.toLowerCase().startsWith('ja')?(opt==='Ja!'):(opt==='Nein!');
+      btn.onclick=()=>checkAnswer(opt,isCorrect?ex.correct:'wrong',btn,grid);
+      grid.appendChild(btn);
+    });
+  }
+  el.appendChild(grid);
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  ANSWER CHECKING                                         ║
+// ╚══════════════════════════════════════════════════════════╝
+function checkAnswer(answer,correct,btn,grid,btnClass='ans-btn'){
+  // Disable all
+  grid.querySelectorAll('.'+btnClass.split(' ')[0]).forEach(b=>{
+    b.classList.add('disabled');b.onclick=null;
+  });
+  const isCorrect=String(answer)===String(correct);
+  btn.classList.add(isCorrect?'correct':'wrong');
+
+  if(isCorrect){
+    state.exCorrect++;
+    showFeedback(true);
+    speak(getPositive());
+    // Light up a star
+    const starIdx=state.exCorrect<=3?state.exCorrect-1:-1;
+    if(starIdx>=0)document.getElementById('st'+starIdx)?.classList.add('lit');
+  }else{
+    showFeedback(false);
+    speak('Nicht ganz — versuch es nochmal! Du schaffst das! 🦉');
+    // Show correct
+    grid.querySelectorAll('.'+btnClass.split(' ')[0]).forEach(b=>{
+      if(b.textContent.trim()===String(correct)||b.querySelector('.lbl')?.textContent===String(correct)){
+        b.classList.add('correct');
+      }
+    });
+  }
+  setTimeout(()=>{
+    hideFeedback();
+    state.currentEx++;
+    if(state.currentEx>=state.currentExercises.length){finishExercise();}
+    else{renderExercise();speak(state.currentExercises[state.currentEx].question);}
+  },isCorrect?1200:1800);
+}
+
+function getPositive(){
+  const phrases=['Super! 🌟','Richtig! Du bist klasse! 🎉','Toll gemacht! ⭐','Wunderbar! 🦉','Perfekt! ✨','Ja! Das ist es! 🎊'];
+  return phrases[Math.floor(Math.random()*phrases.length)];
+}
+
+function showFeedback(correct){
+  const fb=document.getElementById('feedback');
+  document.getElementById('fb-ico').textContent=correct?'🌟':'💪';
+  document.getElementById('fb-txt').textContent=correct?getPositive().split('!')[0]+'!':'Fast!';
+  fb.className='feedback show '+(correct?'correct-fb':'wrong-fb');
+}
+function hideFeedback(){document.getElementById('feedback').className='feedback';}
+
+function finishExercise(){
+  const topics=(TOPICS[state.grade]||TOPICS[1])[state.currentSubject]||[];
+  const topic=topics[state.currentTopicIdx];
+  const total=state.currentExercises.length;
+  const correct=state.exCorrect;
+  const pts=correct*10;
+  state.stars+=pts;
+  if(topic)state.progress[topic.id]={done:correct>=Math.ceil(total*0.6),correct};
+  save();
+
+  const stars=correct>=total?'⭐⭐⭐':correct>=Math.ceil(total*0.6)?'⭐⭐':'⭐';
+  document.getElementById('result-stars').textContent=stars;
+  document.getElementById('result-title').textContent=correct===total?'Perfekt! 🎉':correct>=Math.ceil(total*0.6)?'Super gemacht! 🌟':'Weiter üben! 💪';
+  document.getElementById('result-sub').textContent=`${correct} von ${total} richtig!`;
+  document.getElementById('result-pts').textContent=`+${pts} Waldpunkte ⭐`;
+  document.getElementById('total-stars').textContent=state.stars;
+  showScreen('s-result');
+  speak(`Du hast ${correct} von ${total} Aufgaben richtig! ${correct===total?'Das ist perfekt!':'Gut gemacht!'}`);
+}
+
+function exitExercise(){
+  if(confirm('Lektion verlassen?'))showScreen('s-topics');
+}
+
+function nextTopic(){
+  const topics=(TOPICS[state.grade]||TOPICS[1])[state.currentSubject]||[];
+  const next=state.currentTopicIdx+1;
+  if(next<topics.length){startTopic(next);}
+  else{buildHome();showScreen('s-home');}
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  TEXT-TO-SPEECH                                          ║
+// ╚══════════════════════════════════════════════════════════╝
+function speak(text){
+  if(!text||!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.lang='de-DE';utt.rate=0.88;utt.pitch=1.1;utt.volume=1;
+  // Bevorzuge eine weibliche/freundliche Stimme
+  const voices=speechSynthesis.getVoices();
+  const preferred=voices.find(v=>v.lang.startsWith('de')&&(v.name.includes('Anna')||v.name.includes('Petra')||v.name.includes('Google')));
+  if(preferred)utt.voice=preferred;
+  speechSynthesis.speak(utt);
+}
+// Warten bis Stimmen geladen
+speechSynthesis.addEventListener('voiceschanged',()=>{});
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  LUMIO CHAT                                              ║
+// ╚══════════════════════════════════════════════════════════╝
+const LUMIO_API='https://waldwissen-lumio.netlify.app/.netlify/functions/chat';
+let chatOpen=false;
+function toggleChat(){
+  chatOpen=!chatOpen;
+  document.getElementById('chat-panel').classList.toggle('open',chatOpen);
+}
+document.addEventListener('click',e=>{
+  const panel=document.getElementById('chat-panel');
+  const fab=document.getElementById('lumio-fab');
+  if(chatOpen&&!panel.contains(e.target)&&!fab.contains(e.target)){
+    chatOpen=false;panel.classList.remove('open');
+  }
+});
+
+function addChatMsg(text,role){
+  const msgs=document.getElementById('chat-msgs');
+  const div=document.createElement('div');
+  div.className=`chat-m ${role}`;
+  div.innerHTML=`${role==='bot'?'<div class="chat-av">🦉</div>':''}<div class="chat-b">${text}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+async function chatSend(){
+  const inp=document.getElementById('chat-inp');
+  const text=inp.value.trim();
+  if(!text)return;
+  inp.value='';
+  addChatMsg(text,'user');
+  state.chatHistory.push({role:'user',content:text});
+  document.getElementById('chat-typing').classList.add('show');
+  try{
+    const r=await fetch(LUMIO_API,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:state.chatHistory.slice(-10)})});
+    const d=await r.json();
+    const reply=d.response||'Hoppla 🦉';
+    state.chatHistory.push({role:'assistant',content:reply});
+    document.getElementById('chat-typing').classList.remove('show');
+    addChatMsg(reply,'bot');
+    speak(reply);
+  }catch{
+    document.getElementById('chat-typing').classList.remove('show');
+    addChatMsg('Hoppla, kurze Pause 🦉 Versuch es nochmal!','bot');
+  }
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  INIT                                                    ║
+// ╚══════════════════════════════════════════════════════════╝
+load();
+if(state.name!=='Freund'){
+  // Schon eingeloggt
+  document.getElementById('hero-name').textContent=state.name;
+  document.getElementById('total-stars').textContent=state.stars;
+  buildHome();
+  showScreen('s-home');
+}
+</script>
+</body>
+</html>
