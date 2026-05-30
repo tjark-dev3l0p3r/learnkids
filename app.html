@@ -1636,13 +1636,27 @@ const ERRORS=[
 
 let exStreak=0,breakCounter=0;
 
-function check(ans,ok,el,grid,sel){
+// AI-Erklärung bei falscher Antwort
+async function getAIExplanation(question, correctAnswer, wrongAnswer, eng){
+  const lang=eng?'English':'German';
+  const prompt=eng
+    ?`A child (age 6-10) got this wrong. Question: "${question}" Correct: "${correctAnswer}" Child said: "${wrongAnswer}". In 1-2 very simple English sentences, explain WHY "${correctAnswer}" is correct. Then add one short encouraging sentence. Keep it very simple and fun.`
+    :`Ein Kind (6-10 Jahre) hat diese Aufgabe falsch beantwortet. Frage: "${question}" Richtige Antwort: "${correctAnswer}" Kind sagte: "${wrongAnswer}". Erkläre in 1-2 sehr einfachen kindgerechten Sätzen WARUM "${correctAnswer}" richtig ist. Dann ein kurzer aufmunternder Satz. Sehr kurz und einfach halten!`;
+  try{
+    const r=await fetch('https://waldwissen-lumio.netlify.app/.netlify/functions/chat',
+      {method:'POST',headers:{'Content-Type':'application/json'},
+       body:JSON.stringify({messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    return d.response||null;
+  }catch{return null;}
+}
+
+async function check(ans,ok,el,grid,sel){
   grid.querySelectorAll(sel).forEach(b=>{b.classList.add('dis');b.onclick=null;});
   const correct=ans===ok;
   el.classList.add(correct?'ok':'no');
-  const eng=sessionLang==='en'; // sessionLang wird in startTopic gesetzt — konsistent!
+  const eng=sessionLang==='en';
   const praiseArr=eng?PRAISE_EN:PRAISE;
-  const errArr=eng?ERRORS_EN:ERRORS;
 
   const next=()=>{
     hideFb();
@@ -1655,27 +1669,40 @@ function check(ans,ok,el,grid,sel){
 
   if(correct){
     curOk++;exStreak++;breakCounter++;
-    // MEGA ANIMATIONEN
-    confetti();          // 100 Konfetti-Partikel
-    starBurst();         // 16 Sterne explodieren
-    screenFlash(true);   // Grüner Screen-Flash
-    showMascot(eng);     // Lumio tanzt rein
+    confetti();
+    starBurst();
+    screenFlash(true);
+    showMascot(eng);
     showFb(true);
-    if(exStreak>=2)setTimeout(()=>showCombo(exStreak),400); // Combo-Counter
+    if(exStreak>=2)setTimeout(()=>showCombo(exStreak),400);
     if(curOk<=3)document.getElementById('es'+(curOk-1))?.classList.add('lit');
     const praise=praiseArr[Math.floor(Math.random()*praiseArr.length)];
     sayThen(clean(ok),()=>sayThen(praise,next));
   }else{
     exStreak=0;
     showFb(false);
-    screenFlash(false);  // Roter Flash
-    shakeEl(el);         // Schüttel-Animation
-    const err=errArr[Math.floor(Math.random()*errArr.length)];
+    screenFlash(false);
+    shakeEl(el);
     grid.querySelectorAll(sel).forEach(b=>{
       if(b.textContent.trim()===ok||b.querySelector('.lb')?.textContent===ok)b.classList.add('ok');
     });
-    const errText=eng?`${err} ${ok}`:`${err}: ${ok}`;
-    sayThen(clean(ok),()=>sayThen(errText,next));
+    // Lumio-Bubble auf "denkt nach..." setzen
+    const qEl=document.getElementById('lumio-q');
+    const origQ=qEl.textContent;
+    qEl.textContent=eng?'Lumio is thinking...':'Lumio denkt nach...';
+    // Richtige Antwort sofort vorlesen
+    sayThen(clean(ok),async()=>{
+      // Dann AI-Erklärung holen
+      const explanation=await getAIExplanation(origQ,ok,ans,eng);
+      qEl.textContent=explanation||origQ; // Erklärung in Lumio-Bubble zeigen
+      if(explanation){
+        sayThen(explanation,next);
+      }else{
+        // Fallback wenn AI nicht antwortet
+        const fallback=eng?`Not quite! The answer is ${ok}. You can do it!`:`Noch nicht ganz! Die Antwort ist ${ok}. Du schaffst das!`;
+        sayThen(fallback,next);
+      }
+    });
   }
 }
 
