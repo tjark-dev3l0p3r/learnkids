@@ -1013,36 +1013,53 @@ function renderYesNo(ex,el){
 function confetti(){
   const el=document.createElement('div');
   el.className='conf';
-  const colors=['#f5a623','#22c55e','#3b82f6','#f43f5e','#a855f7','#fbbf24','#34d399'];
-  for(let i=0;i<55;i++){
+  const colors=['#f5a623','#22c55e','#3b82f6','#f43f5e','#a855f7','#fbbf24','#34d399','#fb923c','#e879f9'];
+  for(let i=0;i<60;i++){
     const p=document.createElement('div');
     p.className='conf-p';
-    const c=colors[i%colors.length];
-    p.style.cssText=`background:${c};left:${Math.random()*100}%;width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;border-radius:${Math.random()>.5?'50%':'2px'};--d:${0.8+Math.random()*1.2}s;--delay:${Math.random()*0.4}s`;
+    const dur=(0.9+Math.random()*1.4).toFixed(2)+'s';
+    const delay=(Math.random()*0.5).toFixed(2)+'s';
+    p.style.background=colors[i%colors.length];
+    p.style.left=Math.random()*100+'%';
+    p.style.width=(7+Math.random()*9)+'px';
+    p.style.height=(7+Math.random()*9)+'px';
+    p.style.borderRadius=Math.random()>.5?'50%':'3px';
+    p.style.setProperty('--d',dur);
+    p.style.setProperty('--delay',delay);
     el.appendChild(p);
   }
   document.body.appendChild(el);
-  setTimeout(()=>el.remove(),2200);
+  setTimeout(()=>el.remove(),2500);
 }
 
 function starBurst(){
-  const cx=window.innerWidth/2, cy=window.innerHeight*0.45;
-  const emojis=['⭐','🌟','✨','💫','🎉'];
-  for(let i=0;i<8;i++){
+  const cx=window.innerWidth/2, cy=window.innerHeight*0.42;
+  const emojis=['⭐','🌟','✨','💫','🎉','🎊','💥','🏆'];
+  for(let i=0;i<10;i++){
     const s=document.createElement('div');
     s.className='star-burst';
-    const angle=(i/8)*Math.PI*2;
-    const dist=80+Math.random()*60;
+    const angle=(i/10)*Math.PI*2+(Math.random()-.5)*.3;
+    const dist=90+Math.random()*70;
+    const dur=(0.5+Math.random()*0.5).toFixed(2)+'s';
     s.textContent=emojis[i%emojis.length];
-    s.style.cssText=`left:${cx}px;top:${cy}px;--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;--d:${0.5+Math.random()*0.4}s`;
+    s.style.position='fixed';
+    s.style.left=cx+'px';
+    s.style.top=cy+'px';
+    s.style.fontSize='1.8rem';
+    s.style.zIndex='150';
+    s.style.pointerEvents='none';
+    s.style.setProperty('--tx',Math.cos(angle)*dist+'px');
+    s.style.setProperty('--ty',Math.sin(angle)*dist+'px');
+    s.style.setProperty('--d',dur);
+    s.style.animation=`star-fly ${dur} ease-out forwards`;
     document.body.appendChild(s);
-    setTimeout(()=>s.remove(),900);
+    setTimeout(()=>s.remove(),1000);
   }
 }
 
 function shakeEl(el){
   el.style.animation='none';
-  el.offsetHeight; // reflow
+  void el.offsetHeight;
   el.style.animation='shake-no .45s ease';
   setTimeout(()=>el.style.animation='',500);
 }
@@ -1139,7 +1156,7 @@ function check(ans,ok,el,grid,sel){
   grid.querySelectorAll(sel).forEach(b=>{b.classList.add('dis');b.onclick=null;});
   const correct=ans===ok;
   el.classList.add(correct?'ok':'no');
-  const eng=isEng();
+  const eng=sessionLang==='en'; // sessionLang wird in startTopic gesetzt — konsistent!
   const praiseArr=eng?PRAISE_EN:PRAISE;
   const errArr=eng?ERRORS_EN:ERRORS;
 
