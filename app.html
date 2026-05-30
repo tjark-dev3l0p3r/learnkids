@@ -2587,7 +2587,9 @@ function playAudio(blob,rate,cb){
   const url=URL.createObjectURL(blob);
   const audio=new Audio(url);
   ttsAudio=audio;
-  audio.playbackRate=rate;
+  // Lokal = leicht schneller (euphorischer), Cloud = etwas mehr wegen Edge TTS Tempo
+  const isLocal=url.startsWith('blob:');
+  audio.playbackRate=isLocal?Math.min(rate*1.15,1.5):Math.min(rate*1.25,1.6);
   audio.onended=()=>{URL.revokeObjectURL(url);ttsAudio=null;setTimeout(cb,80);};
   audio.onerror=()=>{URL.revokeObjectURL(url);ttsAudio=null;setTimeout(cb,60);};
   audio.play().catch(()=>{URL.revokeObjectURL(url);ttsAudio=null;setTimeout(cb,60);});
