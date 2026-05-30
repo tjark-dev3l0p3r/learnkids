@@ -1167,50 +1167,58 @@ function clean(text){
     .trim();
 }
 
-// Beste verfügbare deutsche Stimme cachen
-let bestVoice=null;
-function getBestVoice(){
-  if(bestVoice)return bestVoice;
+// Beste Stimme je Sprache cachen
+const voiceCache={};
+function getBestVoice(lang='de'){
+  if(voiceCache[lang])return voiceCache[lang];
   const vs=speechSynthesis.getVoices();
   if(!vs.length)return null;
-  // Priorität: Microsoft Neural > Google > Apple > andere
-  const prio=[
-    v=>v.name.includes('Katja')&&v.name.includes('Online'),  // MS Katja Neural (Edge)
-    v=>v.name.includes('Hedda')&&v.name.includes('Online'),  // MS Hedda Neural
-    v=>v.name.includes('Conrad')&&v.name.includes('Online'), // MS Conrad Neural
-    v=>v.name.includes('Google')&&v.lang.startsWith('de'),   // Google Deutsch
-    v=>v.name.includes('Microsoft')&&v.lang.startsWith('de'),// MS allgemein
-    v=>v.name.includes('Anna')&&v.lang.startsWith('de'),     // Apple Anna
-    v=>v.lang==='de-DE',                                      // Erstbeste de-DE
-    v=>v.lang.startsWith('de'),                               // Irgendetwas Deutsch
+  const isDE=lang==='de';
+  const prio=isDE?[
+    v=>v.name.includes('Katja')&&v.name.includes('Online'),
+    v=>v.name.includes('Hedda')&&v.name.includes('Online'),
+    v=>v.name.includes('Conrad')&&v.name.includes('Online'),
+    v=>v.name.includes('Google')&&v.lang.startsWith('de'),
+    v=>v.name.includes('Microsoft')&&v.lang.startsWith('de'),
+    v=>v.name.includes('Anna')&&v.lang.startsWith('de'),
+    v=>v.lang==='de-DE',
+    v=>v.lang.startsWith('de'),
+  ]:[
+    v=>v.name.includes('Aria')&&v.name.includes('Online'),   // MS Aria Neural (en-US)
+    v=>v.name.includes('Jenny')&&v.name.includes('Online'),  // MS Jenny Neural
+    v=>v.name.includes('Guy')&&v.name.includes('Online'),    // MS Guy Neural
+    v=>v.name.includes('Google')&&v.lang.startsWith('en'),
+    v=>v.name.includes('Samantha'),                          // Apple Samantha
+    v=>v.lang==='en-US',
+    v=>v.lang==='en-GB',
+    v=>v.lang.startsWith('en'),
   ];
-  for(const test of prio){
-    const found=vs.find(test);
-    if(found){bestVoice=found;return found;}
-  }
+  for(const test of prio){const f=vs.find(test);if(f){voiceCache[lang]=f;return f;}}
   return null;
 }
 
-// Sprechen und dann Callback (wartet bis fertig — kein Abschneiden!)
+// Englisch-Fach erkennen → englische Stimme nutzen
+function isEng(){return curSubj==='englisch';}
+
 function sayThen(text,cb,rate=0.88){
   const t=clean(String(text||''));
   if(!t||!window.speechSynthesis){setTimeout(cb,100);return;}
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(t);
-  u.lang='de-DE';u.rate=rate;u.pitch=1.05;u.volume=1;
-  const v=getBestVoice();if(v)u.voice=v;
+  const eng=isEng();
+  u.lang=eng?'en-US':'de-DE';
+  u.rate=rate;u.pitch=1.05;u.volume=1;
+  const v=getBestVoice(eng?'en':'de');if(v)u.voice=v;
   u.onend=()=>setTimeout(cb,120);
   u.onerror=()=>setTimeout(cb,100);
   speechSynthesis.speak(u);
 }
 
-// Sprechen ohne Callback (für Fragen etc.)
-function say(text,rate=0.88){
-  sayThen(text,()=>{},rate);
-}
+function say(text,rate=0.88){sayThen(text,()=>{},rate);}
 
-// Stimmen neu laden wenn verfügbar
-speechSynthesis.addEventListener?.('voiceschanged',()=>{bestVoice=null;getBestVoice();});
+speechSynthesis.addEventListener?.('voiceschanged',()=>{
+  Object.keys(voiceCache).forEach(k=>delete voiceCache[k]);
+});
 
 // ═══════════════════════════════════════════
 // CHAT
