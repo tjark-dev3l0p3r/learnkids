@@ -101,12 +101,26 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .cmp-vs{color:rgba(255,255,255,.45);font-size:1.3rem;font-weight:700}
 
 /* FEEDBACK */
-.fb{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;pointer-events:none;opacity:0;transition:opacity .18s}
+.fb{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;pointer-events:none;opacity:0;transition:opacity .2s}
 .fb.show{opacity:1;pointer-events:all}
-.fb-ok{background:rgba(34,197,94,.18)}
-.fb-no{background:rgba(239,68,68,.1)}
-.fb-ico{font-size:4.5rem;animation:pop .3s ease}
-.fb-txt{font-family:'Baloo 2',cursive;font-size:1.7rem;font-weight:900;color:#fff;margin-top:8px;text-shadow:0 3px 8px rgba(0,0,0,.4)}
+.fb-ok{background:rgba(34,197,94,.15)}
+.fb-no{background:rgba(239,68,68,.08)}
+.fb-ico{font-size:5rem;animation:fb-bounce .4s cubic-bezier(.36,.07,.19,.97)}
+.fb-txt{font-family:'Baloo 2',cursive;font-size:1.8rem;font-weight:900;color:#fff;margin-top:10px;text-shadow:0 3px 10px rgba(0,0,0,.4);animation:fb-slide .35s ease}
+@keyframes fb-bounce{0%{transform:scale(0) rotate(-10deg)}60%{transform:scale(1.25) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes fb-slide{0%{transform:translateY(20px);opacity:0}100%{transform:translateY(0);opacity:1}}
+
+/* CONFETTI */
+.conf{position:fixed;pointer-events:none;z-index:200;top:0;left:0;width:100%;height:100%;overflow:hidden}
+.conf-p{position:absolute;width:10px;height:10px;border-radius:2px;animation:conf-fall var(--d) ease-in var(--delay) forwards}
+@keyframes conf-fall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+/* STAR BURST */
+.star-burst{position:fixed;pointer-events:none;z-index:150;font-size:1.8rem;animation:star-fly var(--d) ease-out forwards}
+@keyframes star-fly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+
+/* WRONG SHAKE */
+@keyframes shake-no{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
 
 /* RESULT */
 #s-res{background:linear-gradient(135deg,#1a3a16,#4a8c3f);align-items:center;justify-content:center;padding:28px 20px;text-align:center}
@@ -872,6 +886,7 @@ function startTopic(idx){
   curTopicIdx=idx;
   curExs=shuffle(t.gen()).slice(0,5);
   curIdx=0;curOk=0;
+  sessionLang=curSubj==='englisch'?'en':'de'; // Sprache für gesamte Session setzen
   document.getElementById('ex-title').textContent=`${t.ico} ${t.n}`;
   document.getElementById('ex-stars').textContent=S.stars;
   [0,1,2].forEach(i=>document.getElementById('es'+i).classList.remove('lit'));
@@ -992,6 +1007,46 @@ function renderYesNo(ex,el){
 // CHECK ANSWER (Lernpsychologie: Growth Mindset + Fehlerkultur)
 // ═══════════════════════════════════════════
 
+// ═══════════════════════════════════════════
+// ANIMATIONEN
+// ═══════════════════════════════════════════
+function confetti(){
+  const el=document.createElement('div');
+  el.className='conf';
+  const colors=['#f5a623','#22c55e','#3b82f6','#f43f5e','#a855f7','#fbbf24','#34d399'];
+  for(let i=0;i<55;i++){
+    const p=document.createElement('div');
+    p.className='conf-p';
+    const c=colors[i%colors.length];
+    p.style.cssText=`background:${c};left:${Math.random()*100}%;width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;border-radius:${Math.random()>.5?'50%':'2px'};--d:${0.8+Math.random()*1.2}s;--delay:${Math.random()*0.4}s`;
+    el.appendChild(p);
+  }
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2200);
+}
+
+function starBurst(){
+  const cx=window.innerWidth/2, cy=window.innerHeight*0.45;
+  const emojis=['⭐','🌟','✨','💫','🎉'];
+  for(let i=0;i<8;i++){
+    const s=document.createElement('div');
+    s.className='star-burst';
+    const angle=(i/8)*Math.PI*2;
+    const dist=80+Math.random()*60;
+    s.textContent=emojis[i%emojis.length];
+    s.style.cssText=`left:${cx}px;top:${cy}px;--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;--d:${0.5+Math.random()*0.4}s`;
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(),900);
+  }
+}
+
+function shakeEl(el){
+  el.style.animation='none';
+  el.offsetHeight; // reflow
+  el.style.animation='shake-no .45s ease';
+  setTimeout(()=>el.style.animation='',500);
+}
+
 // ── 100 Motivationssätze (Prozess-Lob, Carol Dweck) ──
 const PRAISE=[
   'Ja! Du hast genau hingeschaut!','Richtig! Du wirst jeden Tag besser!',
@@ -1046,6 +1101,29 @@ const PRAISE=[
   'Wow! Du wirst jeden Tag ein bisschen mehr zum Profi!','Super! Gleich geschafft!',
 ];
 
+// Englische Motivationssätze für Englisch-Fach
+const PRAISE_EN=[
+  'Yes! You got it!','Amazing! You are learning so fast!','Great job! Keep going!',
+  'Fantastic! You are a star!','Wow, well done!','Brilliant! You are so clever!',
+  'That is correct! You are awesome!','Super! You are getting better every day!',
+  'Yes! Perfect answer!','Wonderful! You should be proud!',
+  'Excellent work! You tried hard!','Incredible! You are a champion!',
+  'Nice one! You did not give up!','Spot on! You are a natural!',
+  'Terrific! Keep up the great work!','You nailed it! Brilliant!',
+  'Outstanding! You are on fire today!','Yes! That is exactly right!',
+  'Superb! You are growing smarter!','Way to go! You are amazing!',
+  'Correct! Your brain is working great!','Hooray! You did it!',
+  'Awesome! One step closer to the finish!','Great thinking! You are so smart!',
+  'Perfect! You should feel proud!','Brilliant effort! Well done!',
+  'Yes! You remembered that!','Wow! You are really concentrating!',
+  'Top marks! You are a real learner!','Fabulous! Keep shining!',
+];
+
+const ERRORS_EN=[
+  'Not quite! The answer was','Almost! Try to remember','Good try! Now you know it',
+  'Nearly there! Listen carefully','Keep going! You can do it',
+];
+
 // Fehler-Ermutigung
 const ERRORS=[
   'Fast! Schau nochmal genau hin.','Noch nicht ganz. Du schaffst das!',
@@ -1061,37 +1139,40 @@ function check(ans,ok,el,grid,sel){
   grid.querySelectorAll(sel).forEach(b=>{b.classList.add('dis');b.onclick=null;});
   const correct=ans===ok;
   el.classList.add(correct?'ok':'no');
+  const eng=isEng();
+  const praiseArr=eng?PRAISE_EN:PRAISE;
+  const errArr=eng?ERRORS_EN:ERRORS;
+
+  const next=()=>{
+    hideFb();
+    const showBreak=breakCounter>0&&breakCounter%10===0;
+    curIdx++;
+    if(curIdx>=curExs.length)finish();
+    else if(showBreak)showMovementBreak();
+    else renderEx();
+  };
 
   if(correct){
     curOk++;exStreak++;breakCounter++;
+    // Animationen!
+    confetti();
+    starBurst();
     showFb(true);
     if(curOk<=3)document.getElementById('es'+(curOk-1))?.classList.add('lit');
-    // Erst Antwort sprechen, dann wenn fertig das Lob, dann weiter
-    const praise=PRAISE[Math.floor(Math.random()*PRAISE.length)];
-    sayThen(clean(ok),()=>sayThen(praise,()=>{
-      hideFb();
-      const showBreak=breakCounter>0&&breakCounter%10===0;
-      curIdx++;
-      if(curIdx>=curExs.length)finish();
-      else if(showBreak)showMovementBreak();
-      else renderEx();
-    }));
+    const praise=praiseArr[Math.floor(Math.random()*praiseArr.length)];
+    // Antwort vorlesen → Lob → weiter
+    sayThen(clean(ok),()=>sayThen(praise,next));
   }else{
     exStreak=0;
     showFb(false);
-    const err=ERRORS[Math.floor(Math.random()*ERRORS.length)];
+    shakeEl(el); // Schüttel-Animation bei Falsch
+    const err=errArr[Math.floor(Math.random()*errArr.length)];
     grid.querySelectorAll(sel).forEach(b=>{
       if(b.textContent.trim()===ok||b.querySelector('.lb')?.textContent===ok)b.classList.add('ok');
     });
-    // Richtige Antwort sprechen, dann Ermutigung, dann weiter
-    sayThen(clean(ok),()=>sayThen(err,()=>{
-      hideFb();
-      const showBreak=breakCounter>0&&breakCounter%10===0;
-      curIdx++;
-      if(curIdx>=curExs.length)finish();
-      else if(showBreak)showMovementBreak();
-      else renderEx();
-    }));
+    // Richtige Antwort sprechen → Ermutigung → weiter
+    const errText=eng?`${err} ${ok}`:`${err}: ${ok}`;
+    sayThen(clean(ok),()=>sayThen(errText,next));
   }
 }
 
@@ -1197,15 +1278,19 @@ function getBestVoice(lang='de'){
   return null;
 }
 
-// Englisch-Fach erkennen → englische Stimme nutzen
+// Englisch-Fach erkennen → englische Stimme für ALLES in diesem Fach
 function isEng(){return curSubj==='englisch';}
+
+// Sprache für aktuelle Session merken (auch nach renderEx-Aufrufen)
+let sessionLang='de';
 
 function sayThen(text,cb,rate=0.88){
   const t=clean(String(text||''));
   if(!t||!window.speechSynthesis){setTimeout(cb,100);return;}
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(t);
-  const eng=isEng();
+  // sessionLang wird in startTopic gesetzt und bleibt konstant
+  const eng=sessionLang==='en';
   u.lang=eng?'en-US':'de-DE';
   u.rate=rate;u.pitch=1.05;u.volume=1;
   const v=getBestVoice(eng?'en':'de');if(v)u.voice=v;
