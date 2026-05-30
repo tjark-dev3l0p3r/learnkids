@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WaldWissen — Lernen im Zauberwald</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --green-dark: #2d5a27;
+  --green-mid: #4a8c3f;
+  --green-light: #7bc67a;
+  --green-pale: #c8e6c9;
+  --cream: #fdf8f0;
+  --warm: #fff8e7;
+  --amber: #f5a623;
+  --amber-dark: #e8901a;
+  --brown: #6d4c3d;
+  --brown-light: #a0785a;
+  --purple: #7c4dff;
+  --teal: #00897b;
+  --pink: #e91e8c;
+  --shadow: rgba(45, 90, 39, 0.15);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--cream);
+  color: var(--brown);
+  overflow-x: hidden;
+}
+
+/* ── NAVBAR ── */
+nav {
+  position: fixed; top: 0; width: 100%; z-index: 100;
+  background: rgba(253,248,240,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 2px solid var(--green-pale);
+  padding: 14px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.6rem; font-weight: 900;
+  color: var(--green-dark);
+  display: flex; align-items: center; gap: 10px;
+}
+.nav-logo span { color: var(--amber); }
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a {
+  text-decoration: none; color: var(--brown);
+  font-weight: 700; font-size: .95rem;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--green-mid); }
+.nav-cta {
+  background: var(--amber);
+  color: #fff !important;
+  padding: 10px 24px;
+  border-radius: 50px;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 14px rgba(245,166,35,.4);
+  transition: transform .2s, box-shadow .2s !important;
+}
+.nav-cta:hover { transform: translateY(-2px) !important; box-shadow: 0 6px 20px rgba(245,166,35,.5) !important; }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #1a3a16 0%, #2d5a27 40%, #4a8c3f 100%);
+  display: flex; align-items: center;
+  padding: 100px 40px 60px;
+  position: relative; overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background-image: url('hero.jpg');
+  background-size: cover; background-position: center;
+  opacity: 0.25;
+}
+.hero-fireflies {
+  position: absolute; inset: 0; pointer-events: none;
+}
+.firefly {
+  position: absolute;
+  width: 6px; height: 6px;
+  background: #ffd54f;
+  border-radius: 50%;
+  box-shadow: 0 0 8px 3px rgba(255,213,79,.7);
+  animation: float var(--dur) ease-in-out infinite;
+}
+@keyframes float {
+  0%,100% { transform: translate(0,0) scale(1); opacity: .3; }
+  50% { transform: translate(var(--tx), var(--ty)) scale(1.3); opacity: 1; }
+}
+.hero-content {
+  position: relative; z-index: 2;
+  max-width: 580px;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 50px; padding: 6px 18px;
+  color: #fff; font-size: .82rem; font-weight: 700;
+  margin-bottom: 24px; backdrop-filter: blur(8px);
+}
+.hero-title {
+  font-family: 'Baloo 2', cursive;
+  font-size: 3.8rem; font-weight: 900;
+  color: #fff; line-height: 1.1;
+  margin-bottom: 20px;
+}
+.hero-title .highlight {
+  color: var(--amber);
+  text-shadow: 0 0 30px rgba(245,166,35,.5);
+}
+.hero-sub {
+  color: rgba(255,255,255,.85);
+  font-size: 1.15rem; line-height: 1.7;
+  margin-bottom: 36px; font-weight: 600;
+}
+.hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+.btn-primary {
+  background: var(--amber);
+  color: #fff; border: none;
+  padding: 16px 36px; border-radius: 50px;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.1rem; font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(245,166,35,.5);
+  transition: transform .2s, box-shadow .2s;
+  text-decoration: none; display: inline-block;
+}
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(245,166,35,.6); }
+.btn-secondary {
+  background: rgba(255,255,255,.15);
+  color: #fff; border: 2px solid rgba(255,255,255,.4);
+  padding: 14px 32px; border-radius: 50px;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1rem; font-weight: 700;
+  cursor: pointer; backdrop-filter: blur(8px);
+  transition: background .2s;
+  text-decoration: none; display: inline-block;
+}
+.btn-secondary:hover { background: rgba(255,255,255,.25); }
+
+.hero-owl {
+  position: absolute; right: 8%; bottom: 0; z-index: 2;
+  width: 420px; filter: drop-shadow(0 20px 40px rgba(0,0,0,.3));
+  animation: bob 3s ease-in-out infinite;
+}
+@keyframes bob {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+.hero-stars {
+  position: absolute; top: 20%; right: 5%; z-index: 2;
+  font-size: 2rem;
+  animation: spin 8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── STATS ── */
+.stats {
+  background: var(--green-dark);
+  padding: 28px 40px;
+  display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;
+}
+.stat { text-align: center; color: #fff; }
+.stat-num {
+  font-family: 'Baloo 2', cursive;
+  font-size: 2.2rem; font-weight: 900;
+  color: var(--amber);
+}
+.stat-label { font-size: .82rem; font-weight: 600; opacity: .8; }
+
+/* ── SECTION SHARED ── */
+section { padding: 90px 40px; }
+.section-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--green-pale);
+  color: var(--green-dark);
+  padding: 6px 16px; border-radius: 50px;
+  font-size: .78rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .08em;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-family: 'Baloo 2', cursive;
+  font-size: 2.6rem; font-weight: 900;
+  color: var(--green-dark);
+  margin-bottom: 14px; line-height: 1.2;
+}
+.section-sub {
+  color: var(--brown-light);
+  font-size: 1.05rem; line-height: 1.7;
+  max-width: 540px;
+}
+
+/* ── HOW IT WORKS ── */
+.how { background: var(--warm); }
+.how-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 28px; margin-top: 50px;
+}
+.how-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 32px 28px;
+  border: 2px solid var(--green-pale);
+  position: relative;
+  transition: transform .2s, box-shadow .2s;
+}
+.how-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px var(--shadow); }
+.how-num {
+  position: absolute; top: -18px; left: 28px;
+  background: var(--amber);
+  color: #fff;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.1rem; font-weight: 900;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(245,166,35,.4);
+}
+.how-icon { font-size: 2.8rem; margin-bottom: 16px; }
+.how-card h3 {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.2rem; font-weight: 800;
+  color: var(--green-dark); margin-bottom: 10px;
+}
+.how-card p { font-size: .88rem; color: var(--brown-light); line-height: 1.6; }
+
+/* ── FEATURES ── */
+.features { background: var(--cream); }
+.feat-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 60px; align-items: center; margin-top: 50px;
+}
+.feat-list { display: flex; flex-direction: column; gap: 20px; }
+.feat-item {
+  display: flex; gap: 18px; align-items: flex-start;
+  background: #fff; border-radius: 18px;
+  padding: 20px 22px;
+  border: 2px solid var(--green-pale);
+  transition: border-color .2s, transform .2s;
+}
+.feat-item:hover { border-color: var(--green-light); transform: translateX(6px); }
+.feat-icon {
+  font-size: 2rem; flex-shrink: 0;
+  width: 52px; height: 52px;
+  background: var(--green-pale);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.feat-text h4 {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.05rem; font-weight: 800;
+  color: var(--green-dark); margin-bottom: 4px;
+}
+.feat-text p { font-size: .84rem; color: var(--brown-light); line-height: 1.5; }
+.feat-visual {
+  border-radius: 28px; overflow: hidden;
+  box-shadow: 0 20px 60px var(--shadow);
+  border: 3px solid var(--green-pale);
+}
+.feat-visual img { width: 100%; display: block; }
+
+/* ── AI TUTOR ── */
+.tutor-section {
+  background: linear-gradient(135deg, #1a3a16 0%, #2d5a27 100%);
+  padding: 90px 40px;
+  text-align: center; position: relative; overflow: hidden;
+}
+.tutor-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(123,198,122,.15) 0%, transparent 70%);
+}
+.tutor-section .section-title { color: #fff; }
+.tutor-section .section-sub { color: rgba(255,255,255,.75); margin: 0 auto 50px; }
+.chat-demo {
+  max-width: 520px; margin: 0 auto;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 24px; padding: 28px;
+  backdrop-filter: blur(12px);
+}
+.chat-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,.15);
+}
+.chat-avatar {
+  width: 44px; height: 44px;
+  background: var(--green-light);
+  border-radius: 50%; font-size: 1.4rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.chat-name { color: #fff; font-weight: 800; font-size: .95rem; }
+.chat-status { color: var(--green-light); font-size: .75rem; font-weight: 600; }
+.chat-msg {
+  display: flex; gap: 10px;
+  margin-bottom: 14px; align-items: flex-end;
+}
+.chat-msg.user { flex-direction: row-reverse; }
+.chat-bubble {
+  padding: 12px 16px; border-radius: 18px;
+  font-size: .88rem; line-height: 1.5; max-width: 78%;
+  font-weight: 600;
+}
+.chat-msg.bot .chat-bubble {
+  background: rgba(255,255,255,.12);
+  color: #fff; border-bottom-left-radius: 4px;
+}
+.chat-msg.user .chat-bubble {
+  background: var(--amber);
+  color: #fff; border-bottom-right-radius: 4px;
+}
+.chat-typing {
+  display: flex; gap: 5px; align-items: center;
+  padding: 10px 14px;
+  background: rgba(255,255,255,.08);
+  border-radius: 18px; width: fit-content;
+  margin-top: 8px;
+}
+.dot {
+  width: 7px; height: 7px;
+  background: rgba(255,255,255,.5);
+  border-radius: 50%;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.dot:nth-child(2) { animation-delay: .2s; }
+.dot:nth-child(3) { animation-delay: .4s; }
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: .5; } 50% { transform: scale(1.3); opacity: 1; } }
+
+/* ── PRICING ── */
+.pricing { background: var(--warm); text-align: center; }
+.price-cards {
+  display: flex; gap: 28px; justify-content: center;
+  margin-top: 50px; flex-wrap: wrap;
+}
+.price-card {
+  background: #fff;
+  border: 2px solid var(--green-pale);
+  border-radius: 28px; padding: 36px 32px;
+  width: 300px;
+  transition: transform .2s, box-shadow .2s;
+  position: relative;
+}
+.price-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px var(--shadow); }
+.price-card.featured {
+  border-color: var(--amber);
+  background: linear-gradient(160deg, #fff8e7 0%, #fff 100%);
+  transform: scale(1.05);
+}
+.price-card.featured:hover { transform: scale(1.05) translateY(-8px); }
+.popular-badge {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  background: var(--amber); color: #fff;
+  font-size: .72rem; font-weight: 900;
+  padding: 5px 18px; border-radius: 50px;
+  text-transform: uppercase; letter-spacing: .08em;
+  white-space: nowrap;
+}
+.price-plan {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1rem; font-weight: 800;
+  color: var(--green-mid); margin-bottom: 12px;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.price-amount {
+  font-family: 'Baloo 2', cursive;
+  font-size: 3rem; font-weight: 900;
+  color: var(--green-dark); line-height: 1;
+}
+.price-period { font-size: .8rem; color: var(--brown-light); font-weight: 600; margin-bottom: 8px; }
+.price-note { font-size: .75rem; color: var(--green-mid); font-weight: 700; margin-bottom: 24px; }
+.price-features { list-style: none; margin-bottom: 28px; text-align: left; }
+.price-features li {
+  padding: 7px 0; font-size: .86rem;
+  color: var(--brown); font-weight: 600;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--green-pale);
+}
+.price-features li:last-child { border-bottom: none; }
+.check { color: var(--green-mid); font-size: 1.1rem; }
+
+/* ── SUBJECTS ── */
+.subjects { background: var(--cream); }
+.subj-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px; margin-top: 50px;
+}
+.subj-card {
+  background: #fff;
+  border: 2px solid var(--green-pale);
+  border-radius: 20px; padding: 24px 16px;
+  text-align: center;
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+  cursor: pointer;
+}
+.subj-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--green-light);
+  box-shadow: 0 10px 30px var(--shadow);
+}
+.subj-icon { font-size: 2.4rem; margin-bottom: 10px; }
+.subj-name {
+  font-family: 'Baloo 2', cursive;
+  font-size: .9rem; font-weight: 800;
+  color: var(--green-dark);
+}
+
+/* ── CTA ── */
+.cta-section {
+  background: linear-gradient(135deg, #2d5a27 0%, #4a8c3f 100%);
+  padding: 100px 40px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.cta-section::before {
+  content: '🌲🌳🌲🌿🌲🌳🌲';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  font-size: 4rem; letter-spacing: 8px;
+  opacity: .15; white-space: nowrap;
+}
+.cta-title {
+  font-family: 'Baloo 2', cursive;
+  font-size: 3rem; font-weight: 900;
+  color: #fff; margin-bottom: 16px;
+}
+.cta-sub { color: rgba(255,255,255,.8); font-size: 1.1rem; margin-bottom: 40px; font-weight: 600; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--green-dark);
+  padding: 40px; text-align: center;
+  color: rgba(255,255,255,.5);
+  font-size: .82rem; font-weight: 600;
+}
+footer span { color: var(--amber); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .hero-title { font-size: 2.4rem; }
+  .hero-owl { display: none; }
+  .feat-grid { grid-template-columns: 1fr; }
+  .stats { gap: 28px; }
+  nav { padding: 14px 20px; }
+  section { padding: 60px 20px; }
+  .price-card.featured { transform: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">🦉 Wald<span>Wissen</span></div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#tutor">AI-Tutor</a>
+    <a href="#preise">Preise</a>
+    <a href="#start" class="nav-cta">Kostenlos testen</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-fireflies" id="fireflies"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🌟 Neu: KI-Tutor für Kinder</div>
+    <h1 class="hero-title">Lernen im<br><span class="highlight">Zauberwald</span></h1>
+    <p class="hero-sub">Der persönliche KI-Nachhilfelehrer für Kinder von 6–10 Jahren. Spielerisch, adaptiv und halb so teuer wie die Konkurrenz.</p>
+    <div class="hero-buttons">
+      <a href="#start" class="btn-primary">🎒 7 Tage gratis starten</a>
+      <a href="#tutor" class="btn-secondary">▶ Demo ansehen</a>
+    </div>
+  </div>
+  <img src="owl.jpg" class="hero-owl" alt="Lumio die Eule">
+  <div class="hero-stars">✨</div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">9,99€</div>
+    <div class="stat-label">pro Monat — fair & kündbar</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">6–10</div>
+    <div class="stat-label">Jahre Grundschule</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">24/7</div>
+    <div class="stat-label">KI-Tutor verfügbar</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">12</div>
+    <div class="stat-label">Schulfächer abgedeckt</div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="features">
+  <div class="section-tag">🌿 So funktioniert's</div>
+  <h2 class="section-title">Lernen wie von Zauberhand</h2>
+  <p class="section-sub">Kein kompliziertes Setup. Einfach anmelden und sofort loslegen — Lumio erklärt den Rest.</p>
+  <div class="how-grid">
+    <div class="how-card">
+      <div class="how-num">1</div>
+      <div class="how-icon">🎒</div>
+      <h3>Anmelden & starten</h3>
+      <p>Profil für dein Kind anlegen, Klasse wählen — fertig. Kein langes Setup, keine Kreditkarte nötig.</p>
+    </div>
+    <div class="how-card">
+      <div class="how-num">2</div>
+      <div class="how-icon">🦉</div>
+      <h3>Lumio erklärt</h3>
+      <p>Unser KI-Tutor Lumio erklärt Themen kindgerecht, geduldig und so oft wie nötig — nie genervt.</p>
+    </div>
+    <div class="how-card">
+      <div class="how-num">3</div>
+      <div class="how-icon">🎮</div>
+      <h3>Spielend üben</h3>
+      <p>Interaktive Spiele und Aufgaben machen Mathe, Deutsch & Co. zum Abenteuer im Zauberwald.</p>
+    </div>
+    <div class="how-card">
+      <div class="how-num">4</div>
+      <div class="how-icon">📊</div>
+      <h3>Eltern behalten den Überblick</h3>
+      <p>Dashboard zeigt genau was dein Kind gelernt hat, wo es stark ist und wo es noch Hilfe braucht.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="section-tag">⭐ Features</div>
+  <h2 class="section-title">Alles was Kinder brauchen</h2>
+  <div class="feat-grid">
+    <div class="feat-list">
+      <div class="feat-item">
+        <div class="feat-icon">🤖</div>
+        <div class="feat-text">
+          <h4>Persönlicher KI-Tutor</h4>
+          <p>Lumio beantwortet jede Frage sofort — zu jeder Zeit, ohne Wartezeit und ohne zu urteilen.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🧠</div>
+        <div class="feat-text">
+          <h4>Adaptives Lernen</h4>
+          <p>Die App erkennt automatisch was dein Kind kann und passt die Schwierigkeit perfekt an.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🏆</div>
+        <div class="feat-text">
+          <h4>Waldabenteuer & Belohnungen</h4>
+          <p>Für jede gemeisterte Aufgabe gibt es Waldpunkte, neue Charaktere und spannende Quests.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🔒</div>
+        <div class="feat-text">
+          <h4>100% Kindersicher & DSGVO</h4>
+          <p>Keine Werbung, keine sozialen Netzwerke, keine Datenverkauf. Eltern haben volle Kontrolle.</p>
+        </div>
+      </div>
+    </div>
+    <div class="feat-visual">
+      <img src="hero.jpg" alt="WaldWissen App">
+    </div>
+  </div>
+</section>
+
+<!-- AI TUTOR DEMO -->
+<section class="tutor-section" id="tutor">
+  <div class="section-tag" style="background:rgba(255,255,255,.15);color:#fff">🦉 KI-Tutor Lumio</div>
+  <h2 class="section-title">Stell Lumio jede Frage</h2>
+  <p class="section-sub">Lumio erklärt geduldig, kreativ und immer auf dem Level deines Kindes — wie ein echter Nachhilfelehrer, aber 24/7.</p>
+  <div class="chat-demo">
+    <div class="chat-header">
+      <div class="chat-avatar">🦉</div>
+      <div>
+        <div class="chat-name">Lumio</div>
+        <div class="chat-status">● Online — bereit zu helfen</div>
+      </div>
+    </div>
+    <div class="chat-msg user">
+      <div class="chat-bubble">Warum ist der Himmel blau? 🌍</div>
+    </div>
+    <div class="chat-msg bot">
+      <div class="chat-bubble">Stell dir vor, Sonnenlicht ist wie ein Regenbogen aus vielen Farben gemischt! Wenn es auf die Luft trifft, streut die Luft das blaue Licht am stärksten in alle Richtungen — deshalb sehen wir überall Blau wenn wir nach oben schauen! ☀️🔵</div>
+    </div>
+    <div class="chat-msg user">
+      <div class="chat-bubble">Und warum ist der Sonnenuntergang orange? 🌅</div>
+    </div>
+    <div class="chat-msg bot">
+      <div class="chat-bubble">Super Frage! Abends muss das Licht viel weiter durch die Luft reisen. Das Blau wird dabei komplett "weggestreut" — nur Orange und Rot kommen noch durch. Clever, oder? 🌊</div>
+    </div>
+    <div class="chat-typing">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SUBJECTS -->
+<section class="subjects">
+  <div class="section-tag">📚 Fächer</div>
+  <h2 class="section-title">Alle Schulfächer dabei</h2>
+  <p class="section-sub">Abgestimmt auf die deutschen Lehrpläne der Klassen 1–4.</p>
+  <div class="subj-grid">
+    <div class="subj-card"><div class="subj-icon">🔢</div><div class="subj-name">Mathe</div></div>
+    <div class="subj-card"><div class="subj-icon">📖</div><div class="subj-name">Deutsch</div></div>
+    <div class="subj-card"><div class="subj-icon">🌍</div><div class="subj-name">Sachkunde</div></div>
+    <div class="subj-card"><div class="subj-icon">🇬🇧</div><div class="subj-name">Englisch</div></div>
+    <div class="subj-card"><div class="subj-icon">🎨</div><div class="subj-name">Kreativität</div></div>
+    <div class="subj-card"><div class="subj-icon">🧪</div><div class="subj-name">Experimente</div></div>
+    <div class="subj-card"><div class="subj-icon">🎵</div><div class="subj-name">Musik</div></div>
+    <div class="subj-card"><div class="subj-icon">🗺️</div><div class="subj-name">Geografie</div></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="preise">
+  <div class="section-tag">💚 Faire Preise</div>
+  <h2 class="section-title">Kein Kleingedrucktes</h2>
+  <p class="section-sub" style="margin:0 auto">Transparent, fair und jederzeit kündbar. Versprochen.</p>
+  <div class="price-cards">
+    <div class="price-card">
+      <div class="price-plan">🌱 Starter</div>
+      <div class="price-amount">0€</div>
+      <div class="price-period">7 Tage kostenlos</div>
+      <div class="price-note">Keine Kreditkarte nötig</div>
+      <ul class="price-features">
+        <li><span class="check">✓</span> 3 Fächer inklusive</li>
+        <li><span class="check">✓</span> 10 Lumio-Fragen/Tag</li>
+        <li><span class="check">✓</span> Basis-Lernspiele</li>
+        <li><span class="check">✓</span> 1 Kinderprofil</li>
+      </ul>
+      <a href="#" class="btn-primary" style="width:100%;text-align:center">Gratis starten</a>
+    </div>
+    <div class="price-card featured">
+      <div class="popular-badge">⭐ Beliebteste Wahl</div>
+      <div class="price-plan">🌳 Waldentdecker</div>
+      <div class="price-amount">9,99€</div>
+      <div class="price-period">pro Monat · jederzeit kündbar</div>
+      <div class="price-note">✓ Kein Jahresvertrag</div>
+      <ul class="price-features">
+        <li><span class="check">✓</span> Alle 8 Fächer</li>
+        <li><span class="check">✓</span> Unbegrenzte Lumio-Fragen</li>
+        <li><span class="check">✓</span> Adaptives Lernen</li>
+        <li><span class="check">✓</span> Eltern-Dashboard</li>
+        <li><span class="check">✓</span> Alle Waldabenteuer</li>
+        <li><span class="check">✓</span> Bis zu 3 Kinderprofile</li>
+      </ul>
+      <a href="#" class="btn-primary" style="width:100%;text-align:center">Jetzt starten</a>
+    </div>
+    <div class="price-card">
+      <div class="price-plan">👨‍👩‍👧‍👦 Familie</div>
+      <div class="price-amount">14,99€</div>
+      <div class="price-period">pro Monat · jederzeit kündbar</div>
+      <div class="price-note">✓ Bis zu 5 Kinder</div>
+      <ul class="price-features">
+        <li><span class="check">✓</span> Alles aus Waldentdecker</li>
+        <li><span class="check">✓</span> 5 Kinderprofile</li>
+        <li><span class="check">✓</span> Fortschritts-Reports</li>
+        <li><span class="check">✓</span> Priorität-Support</li>
+      </ul>
+      <a href="#" class="btn-primary" style="width:100%;text-align:center">Für die Familie</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="start">
+  <h2 class="cta-title">Bereit für das Waldabenteuer? 🦉</h2>
+  <p class="cta-sub">7 Tage kostenlos testen — keine Kreditkarte, keine Fangverträge.</p>
+  <a href="#" class="btn-primary" style="font-size:1.2rem;padding:18px 48px">🎒 Jetzt kostenlos starten</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>🦉 <span>WaldWissen</span> · Lernen das Spaß macht · © 2026</p>
+  <p style="margin-top:8px">Datenschutz · Impressum · Kontakt · AGB</p>
+</footer>
+
+<script>
+// Fireflies
+const container = document.getElementById('fireflies');
+for (let i = 0; i < 22; i++) {
+  const f = document.createElement('div');
+  f.className = 'firefly';
+  f.style.cssText = `
+    left:${Math.random()*100}%;
+    top:${Math.random()*100}%;
+    --dur:${3+Math.random()*4}s;
+    --tx:${-30+Math.random()*60}px;
+    --ty:${-30+Math.random()*60}px;
+    animation-delay:${Math.random()*4}s;
+    width:${4+Math.random()*5}px;
+    height:${4+Math.random()*5}px;
+  `;
+  container.appendChild(f);
+}
+</script>
+</body>
+</html>
