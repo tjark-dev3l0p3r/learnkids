@@ -1775,8 +1775,18 @@ const FOX = (() => {
   }
 
   // ── PUBLIC API ────────────────────────────
-  const PHRASES_DE=['Ja! Wau!','Perfekt!','RICHTIG!','Du rockst!','Mega!','Jawohl!','Klasse!','BOOM!','YES!'];
-  const PHRASES_EN=['Yes!','Correct!','Amazing!','You rock!','Perfect!','Nailed it!','Great!','Boom!'];
+  const PHRASES_DE=[
+    'Ja! Wau!','Perfekt!','RICHTIG!','Du rockst!','Mega!','Jawohl!','Klasse!','BOOM!',
+    'Ausgezeichnet!','Hammer!','Wow!','Stark!','Super!','Bravo!','Fantastisch!',
+    'Unglaublich!','Top!','Wunderbar!','Großartig!','Spitze!','Genial!','Prima!',
+    'Wahnsinn!','Treffer!','Ja genau!','So geht das!','Richtig erkannt!','Mega stark!'
+  ];
+  const PHRASES_EN=[
+    'Yes!','Correct!','Amazing!','You rock!','Perfect!','Nailed it!','Great!','Boom!',
+    'Incredible!','Brilliant!','Awesome!','Superb!','Fantastic!','Outstanding!',
+    'Excellent!','Spot on!','Well done!','Terrific!','Wonderful!','Sensational!',
+    'Champion!','Legend!','Genius!','Superstar!','Unstoppable!','Magnificent!'
+  ];
 
   function celebrate(eng=false){
     cleanup();
@@ -1894,6 +1904,14 @@ const PRAISE_EN=[
 const ERRORS_EN=[
   'Not quite! The answer was','Almost! Try to remember','Good try! Now you know it',
   'Nearly there! Listen carefully','Keep going! You can do it',
+  'Great effort! The correct answer is','Almost got it! Remember',
+  'Good try! Learning means getting it wrong sometimes. The answer is',
+  'You are so close! The right answer is','Nice try! Now you know',
+  'Every mistake makes you smarter! The answer is','Brilliant effort! It was',
+  'Don\'t give up! The answer is','You\'ll get it next time! It was',
+  'That\'s how we learn! The correct answer is','You tried hard! It was',
+  'Super effort! The answer is','Your brain is growing! It was',
+  'Mistakes help us learn! The answer was','One more try! It was',
 ];
 
 // Fehler-Ermutigung
@@ -1903,6 +1921,15 @@ const ERRORS=[
   'Guter Versuch! Jetzt weißt du es.','Das war mutig! Jetzt kennst du die Antwort.',
   'Gleich! Du kommst immer näher.','Kein Problem! Fehler machen uns klüger.',
   'Gut versucht! Beim nächsten Mal schaffst du es!','Fast! Dein Gehirn merkt es sich jetzt.',
+  'Toller Einsatz! Richtig wäre gewesen:','Weiter so — jeder Fehler macht dich stärker!',
+  'Das ist ganz normal! Dein Gehirn lernt durch Fehler. Die Antwort ist:',
+  'Du hast es versucht — das zählt! Richtig wäre:','Nicht schlimm! Jetzt weißt du es für nächstes Mal.',
+  'Fehler sind das Geheimnis des Lernens! Es war:','Mutig versucht! Die richtige Antwort ist:',
+  'Dein Gehirn wächst gerade! Es wäre gewesen:','Prima Einsatz! Richtig wäre gewesen:',
+  'Du bist auf dem richtigen Weg! Die Antwort ist:','Gleich hast du es! Es war:',
+  'Das macht nichts! Jetzt kennst du die Antwort:','Weitermachen! Die richtige Antwort ist:',
+  'Toll dass du es probiert hast! Es war:','Du lernst mit jedem Fehler! Richtig wäre:',
+  'Kein Problem — jetzt weißt du es! Die Antwort ist:','Fast perfekt! Richtig wäre gewesen:',
 ];
 
 let exStreak=0,breakCounter=0;
@@ -1980,10 +2007,18 @@ async function check(ans,ok,el,grid,sel){
 
 // Bewegungspause (Forschung: Bewegung verbessert Konzentration bei 8-10 Jährigen)
 const BREAKS=[
-  {ico:'🌟',txt:'Pause! Spring 5 Mal hoch! ⬆️',btn:'Fertig! Weiter!'},
-  {ico:'🌈',txt:'Pause! Streck dich so hoch du kannst! 🙆',btn:'Fertig! Weiter!'},
-  {ico:'🦉',txt:'Pause! Dreh dich einmal im Kreis! 🔄',btn:'Fertig! Weiter!'},
-  {ico:'💪',txt:'Pause! Mach 5 Liegestütze! 💪',btn:'Fertig! Weiter!'}
+  {ico:'🌟',txt:'Pause! Spring 5 Mal hoch!',btn:'Fertig! Weiter!'},
+  {ico:'🌈',txt:'Pause! Streck dich so weit wie möglich!',btn:'Fertig! Weiter!'},
+  {ico:'🦉',txt:'Pause! Dreh dich einmal im Kreis!',btn:'Fertig! Weiter!'},
+  {ico:'💪',txt:'Pause! Mach 5 Kniebeugen!',btn:'Fertig! Weiter!'},
+  {ico:'🏃',txt:'Pause! Lauf kurz auf der Stelle — 10 Schritte!',btn:'Fertig! Weiter!'},
+  {ico:'🤸',txt:'Pause! Hampelmann 5 Mal — los!',btn:'Fertig! Weiter!'},
+  {ico:'🦋',txt:'Pause! Strecke beide Arme aus und drehe sie!',btn:'Fertig! Weiter!'},
+  {ico:'🌊',txt:'Pause! Atme tief ein und langsam aus — 3 Mal!',btn:'Fertig! Weiter!'},
+  {ico:'🐸',txt:'Pause! Mach 3 Frosch-Sprünge!',btn:'Fertig! Weiter!'},
+  {ico:'⭐',txt:'Pause! Tippy Toes — 10 Mal auf Zehenspitzen!',btn:'Fertig! Weiter!'},
+  {ico:'🎯',txt:'Pause! Schüttle beide Hände für 5 Sekunden!',btn:'Fertig! Weiter!'},
+  {ico:'🌺',txt:'Pause! Schultern kreisen — 5 Mal vor und zurück!',btn:'Fertig! Weiter!'},
 ];
 function showMovementBreak(){
   const b=BREAKS[Math.floor(Math.random()*BREAKS.length)];
@@ -2021,12 +2056,42 @@ function finish(){
   document.getElementById('res-pts').textContent=`+${pts} ⭐`;
   document.getElementById('h-stars').textContent=S.stars;
   go('s-res');
-  // Growth Mindset: Fokus auf Fortschritt und Prozess
-  const msg=curOk===tot
-    ?`Wow! Alle ${tot} Aufgaben richtig! Du hast wirklich nicht aufgegeben — das ist der Grund warum du immer besser wirst!`
-    :curOk>=Math.ceil(tot*0.6)
-    ?`${curOk} von ${tot} richtig — du wirst jeden Tag ein bisschen besser! Das ist wie ein Muskel der wächst!`
-    :`${curOk} von ${tot} richtig. Fehler sind gut — dein Gehirn lernt dabei am meisten! Versuch es nochmal!`;
+  // Growth Mindset Abschluss — 30 verschiedene Varianten
+  const PERFECT_MSGS=[
+    `Wow! Alle ${tot} richtig! Du hast nicht aufgegeben — genau deshalb wirst du jeden Tag besser!`,
+    `Perfekt! ${tot} von ${tot}! Dein Gehirn hat heute echte Muskeln aufgebaut!`,
+    `Unglaublich! Alle Aufgaben richtig! Das kommt daher, dass du wirklich nachgedacht hast!`,
+    `${tot} von ${tot} — du bist heute absolut unaufhaltbar! Dein Einsatz zahlt sich aus!`,
+    `Perfekte Runde! Du hast konzentriert gearbeitet und es hat sich gelohnt!`,
+    `Wow! Alle richtig! Das zeigt: Wenn du dran bleibst, schaffst du alles!`,
+    `Fantastisch! Jede einzelne Aufgabe richtig — du bist ein echter Lernprofi!`,
+  ];
+  const GOOD_MSGS=[
+    `${curOk} von ${tot} richtig — du wirst jeden Tag ein bisschen besser! Das ist wie ein Muskel der wächst!`,
+    `${curOk} von ${tot}! Dein Gehirn ist gerade dabei, stärker zu werden — du merkst es noch nicht, aber es passiert!`,
+    `Toll! ${curOk} richtig! Lernen ist wie Trainieren — jede Runde macht dich stärker!`,
+    `${curOk} von ${tot} — jede Aufgabe die du machst baut neue Verbindungen in deinem Gehirn!`,
+    `Super Einsatz! ${curOk} richtig. Das Gehirn lernt langsam aber sicher — du bist auf dem richtigen Weg!`,
+    `${curOk} von ${tot} geschafft! Stell dir vor, dein Gehirn macht gerade Liegestütze!`,
+    `Gut gemacht! ${curOk} richtig. Weißt du was? Fehler machen das Gehirn sogar klüger als alles richtige!`,
+    `${curOk} von ${tot} — jeder Schritt zählt! Heute weißt du mehr als gestern!`,
+    `Tolle Arbeit! ${curOk} richtig. Du hast nicht aufgehört — das ist das Wichtigste!`,
+    `${curOk} von ${tot}! Dein Lernmuskel wächst mit jeder Aufgabe — weiter so!`,
+  ];
+  const RETRY_MSGS=[
+    `${curOk} von ${tot} richtig. Fehler sind das Geheimnis des Lernens — dein Gehirn lernt gerade am meisten!`,
+    `${curOk} von ${tot} — nicht schlimm! Fehler machen uns klüger. Versuch es nochmal!`,
+    `${curOk} richtig! Wusstest du? Wenn wir Fehler machen, wachsen neue Verbindungen im Gehirn!`,
+    `${curOk} von ${tot}. Das ist der Anfang! Jedes Mal wenn du es nochmal versuchst, wirst du besser!`,
+    `${curOk} von ${tot} — Fehler sind keine Niederlagen, sie sind Stufen nach oben! Nochmal?`,
+    `${curOk} richtig. Selbst die klügsten Menschen machen Fehler — das macht sie ja klug! Weiter!`,
+    `${curOk} von ${tot}. Dein Gehirn braucht ein paar Runden bis alles sitzt — das ist normal!`,
+    `${curOk} richtig! Bleib dran — beim nächsten Mal klappt es schon besser!`,
+    `${curOk} von ${tot}. Du hast es versucht — das ist der mutigste Schritt überhaupt!`,
+    `${curOk} richtig! Weißt du was das bedeutet? Du hast ${tot-curOk} neue Dinge gelernt!`,
+  ];
+  const arr=curOk===tot?PERFECT_MSGS:curOk>=Math.ceil(tot*0.6)?GOOD_MSGS:RETRY_MSGS;
+  const msg=arr[Math.floor(Math.random()*arr.length)];
   say(msg);
 }
 
