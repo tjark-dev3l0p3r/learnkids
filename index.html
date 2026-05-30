@@ -637,33 +637,42 @@ footer span { color: var(--amber); }
   </div>
 </section>
 
-<!-- AI TUTOR DEMO -->
+<!-- AI TUTOR LIVE -->
 <section class="tutor-section" id="tutor">
-  <div class="section-tag" style="background:rgba(255,255,255,.15);color:#fff">🦉 KI-Tutor Lumio</div>
+  <div class="section-tag" style="background:rgba(255,255,255,.15);color:#fff">🦉 KI-Tutor Lumio — Live Demo</div>
   <h2 class="section-title">Stell Lumio jede Frage</h2>
-  <p class="section-sub">Lumio erklärt geduldig, kreativ und immer auf dem Level deines Kindes — wie ein echter Nachhilfelehrer, aber 24/7.</p>
+  <p class="section-sub">Lumio ist ein echter KI-Tutor — probier es aus! Stell ihm eine Schulfrage.</p>
   <div class="chat-demo">
     <div class="chat-header">
       <div class="chat-avatar">🦉</div>
       <div>
         <div class="chat-name">Lumio</div>
-        <div class="chat-status">● Online — bereit zu helfen</div>
+        <div class="chat-status" id="lumio-status">● Online — bereit zu helfen</div>
       </div>
     </div>
-    <div class="chat-msg user">
-      <div class="chat-bubble">Warum ist der Himmel blau? 🌍</div>
+    <div id="chat-messages" style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+      <div class="chat-msg bot">
+        <div class="chat-bubble">Hallo! Ich bin Lumio 🦉✨ Stell mir eine Frage aus der Schule — ich erkläre alles!</div>
+      </div>
     </div>
-    <div class="chat-msg bot">
-      <div class="chat-bubble">Stell dir vor, Sonnenlicht ist wie ein Regenbogen aus vielen Farben gemischt! Wenn es auf die Luft trifft, streut die Luft das blaue Licht am stärksten in alle Richtungen — deshalb sehen wir überall Blau wenn wir nach oben schauen! ☀️🔵</div>
+    <div id="chat-typing" style="display:none;margin-bottom:12px">
+      <div class="chat-typing">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
     </div>
-    <div class="chat-msg user">
-      <div class="chat-bubble">Und warum ist der Sonnenuntergang orange? 🌅</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+      <button onclick="quickAsk('Warum ist der Himmel blau?')" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:50px;font-size:.75rem;cursor:pointer;font-family:Nunito,sans-serif;font-weight:700">🌤 Warum ist der Himmel blau?</button>
+      <button onclick="quickAsk('Was ist 7 mal 8?')" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:50px;font-size:.75rem;cursor:pointer;font-family:Nunito,sans-serif;font-weight:700">🔢 7 × 8 = ?</button>
+      <button onclick="quickAsk('Wie groß ist ein Elefant?')" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:50px;font-size:.75rem;cursor:pointer;font-family:Nunito,sans-serif;font-weight:700">🐘 Wie groß ist ein Elefant?</button>
     </div>
-    <div class="chat-msg bot">
-      <div class="chat-bubble">Super Frage! Abends muss das Licht viel weiter durch die Luft reisen. Das Blau wird dabei komplett "weggestreut" — nur Orange und Rot kommen noch durch. Clever, oder? 🌊</div>
-    </div>
-    <div class="chat-typing">
-      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div style="display:flex;gap:10px">
+      <input id="chat-input" type="text" placeholder="Stell Lumio eine Frage... 🦉"
+        style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:12px 18px;color:#fff;font-size:.9rem;font-family:Nunito,sans-serif;outline:none"
+        onkeydown="if(event.key==='Enter')sendMessage()">
+      <button onclick="sendMessage()"
+        style="background:var(--amber);border:none;border-radius:50px;padding:12px 22px;color:#fff;font-weight:800;cursor:pointer;font-family:'Baloo 2',cursive;font-size:.95rem;white-space:nowrap">
+        Senden ✨
+      </button>
     </div>
   </div>
 </section>
@@ -766,6 +775,56 @@ for (let i = 0; i < 22; i++) {
     height:${4+Math.random()*5}px;
   `;
   container.appendChild(f);
+}
+
+// ── LUMIO CHAT ──
+const API_URL = 'http://localhost:5050/api/chat';
+let chatHistory = [];
+
+function addMessage(text, role) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role === 'user' ? 'user' : 'bot'}`;
+  div.innerHTML = `<div class="chat-bubble">${text}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function setTyping(show) {
+  document.getElementById('chat-typing').style.display = show ? 'block' : 'none';
+  document.getElementById('lumio-status').textContent = show ? '🦉 Lumio denkt nach...' : '● Online — bereit zu helfen';
+  const msgs = document.getElementById('chat-messages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addMessage(text, 'user');
+  chatHistory.push({ role: 'user', content: text });
+  setTyping(true);
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: chatHistory })
+    });
+    const data = await res.json();
+    const reply = data.response || 'Hoppla, da ist was schiefgelaufen 🦉';
+    chatHistory.push({ role: 'assistant', content: reply });
+    setTyping(false);
+    addMessage(reply, 'bot');
+  } catch(e) {
+    setTyping(false);
+    addMessage('🦉 Lumio schläft gerade... Starte den Server mit: python server.py', 'bot');
+  }
+}
+
+function quickAsk(q) {
+  document.getElementById('chat-input').value = q;
+  sendMessage();
 }
 </script>
 </body>
