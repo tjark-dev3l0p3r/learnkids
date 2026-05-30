@@ -892,7 +892,8 @@ function renderEx(){
   else if(ex.type==='imgch')renderImgCh(ex,body);
   else if(ex.type==='cmp')renderCmp(ex,body);
   else if(ex.type==='yesno')renderYesNo(ex,body);
-  say(ex.q);
+  // Frage vorlesen — ohne Emojis, etwas langsamer für Kinder
+  setTimeout(()=>say(ex.q,0.82),300);
 }
 
 function renderCount(ex,el){
@@ -1008,16 +1009,19 @@ function check(ans,ok,el,grid,sel){
 
   if(correct){
     curOk++;exStreak++;breakCounter++;
-    // Kurze Pause vor Lob (0.5s) — fühlt sich natürlicher an, gibt Raum für Selbstbestätigung
-    setTimeout(()=>showFb(true),500);
-    setTimeout(()=>say(PRAISE_PROCESS[Math.floor(Math.random()*PRAISE_PROCESS.length)]),600);
+    // Richtige Antwort vorlesen (das Wort selbst, sauber ohne Emojis)
+    setTimeout(()=>say(ok),200);
+    // Dann kurze Pause, dann prozess-basiertes Lob
+    setTimeout(()=>showFb(true),600);
+    setTimeout(()=>say(PRAISE_PROCESS[Math.floor(Math.random()*PRAISE_PROCESS.length)]),1000);
     if(curOk<=3)document.getElementById('es'+(curOk-1))?.classList.add('lit');
   }else{
     exStreak=0;
     showFb(false);
-    // Richtige Antwort IMMER zeigen + sanft erklären (kein negativer Sound)
+    // Richtige Antwort vorlesen + erklären (kein negativer Sound)
     const errMsg=ERROR_ENCOURAGE[Math.floor(Math.random()*ERROR_ENCOURAGE.length)];
-    setTimeout(()=>say(`${errMsg}: ${ok}`),300);
+    setTimeout(()=>say(ok),300); // zuerst die richtige Antwort sprechen
+    setTimeout(()=>say(errMsg),1200);
     grid.querySelectorAll(sel).forEach(b=>{
       if(b.textContent.trim()===ok||b.querySelector('.lb')?.textContent===ok)b.classList.add('ok');
     });
@@ -1095,19 +1099,56 @@ function nextTopic(){
 }
 
 // ═══════════════════════════════════════════
-// TTS
+// TTS — Emojis entfernen + beste Stimme
 // ═══════════════════════════════════════════
-function say(text){
-  if(!text||!window.speechSynthesis)return;
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='de-DE';u.rate=0.88;u.pitch=1.1;u.volume=1;
+
+// Emojis und Sonderzeichen entfernen damit TTS sie nicht vorliest
+function clean(text){
+  return text
+    .replace(/(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu,'')
+    .replace(/[🔢🌟⭐💫✨🎉🎊💪🌈🦉🔤📝🏃📚🎨🐾📅🌲⚽⚾🏀✅❌➕➖✖️÷🔵🟡🔴⬆️🔄🙆🧠💡🔍]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+// Beste verfügbare deutsche Stimme cachen
+let bestVoice=null;
+function getBestVoice(){
+  if(bestVoice)return bestVoice;
   const vs=speechSynthesis.getVoices();
-  const v=vs.find(x=>x.lang.startsWith('de')&&(x.name.includes('Anna')||x.name.includes('Google')||x.name.includes('Deutsch')));
+  if(!vs.length)return null;
+  // Priorität: Microsoft Neural > Google > Apple > andere
+  const prio=[
+    v=>v.name.includes('Katja')&&v.name.includes('Online'),  // MS Katja Neural (Edge)
+    v=>v.name.includes('Hedda')&&v.name.includes('Online'),  // MS Hedda Neural
+    v=>v.name.includes('Conrad')&&v.name.includes('Online'), // MS Conrad Neural
+    v=>v.name.includes('Google')&&v.lang.startsWith('de'),   // Google Deutsch
+    v=>v.name.includes('Microsoft')&&v.lang.startsWith('de'),// MS allgemein
+    v=>v.name.includes('Anna')&&v.lang.startsWith('de'),     // Apple Anna
+    v=>v.lang==='de-DE',                                      // Erstbeste de-DE
+    v=>v.lang.startsWith('de'),                               // Irgendetwas Deutsch
+  ];
+  for(const test of prio){
+    const found=vs.find(test);
+    if(found){bestVoice=found;return found;}
+  }
+  return null;
+}
+
+function say(text,rate=0.88){
+  if(!text||!window.speechSynthesis)return;
+  const clean_text=clean(text);
+  if(!clean_text)return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(clean_text);
+  u.lang='de-DE';u.rate=rate;u.pitch=1.05;u.volume=1;
+  const v=getBestVoice();
   if(v)u.voice=v;
   speechSynthesis.speak(u);
 }
-speechSynthesis.addEventListener?.('voiceschanged',()=>{});
+
+// Stimmen neu laden wenn verfügbar
+speechSynthesis.addEventListener?.('voiceschanged',()=>{bestVoice=null;getBestVoice();});
 
 // ═══════════════════════════════════════════
 // CHAT
