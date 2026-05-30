@@ -899,11 +899,24 @@ function renderEx(){
 function renderCount(ex,el){
   const wrap=document.createElement('div');
   wrap.className='obj-wrap';
-  (ex.obj||[]).forEach((o,i)=>{
+  wrap.style.cssText='position:relative;height:170px;flex-shrink:0;background:rgba(255,255,255,.07);border-radius:18px;margin-bottom:16px;overflow:hidden';
+  const objs=ex.obj||[];
+  const n=objs.length;
+  // Streuung: Emojis in leicht zufälligem Kreismuster anordnen
+  objs.forEach((o,i)=>{
     const s=document.createElement('span');
-    s.className='obj'+(ex.cross&&i>=ex.obj.length-ex.cross?' crossed':'');
+    s.className='obj'+(ex.cross&&i>=n-ex.cross?' crossed':'');
     s.textContent=o;
-    s.style.animationDelay=(i*0.04)+'s';
+    // Spiralförmig + zufällig verteilt damit man zählen muss
+    const cols=Math.ceil(Math.sqrt(n*1.6));
+    const rows=Math.ceil(n/cols);
+    const col=i%cols, row=Math.floor(i/cols);
+    const cellW=100/cols, cellH=85/rows;
+    const jitterX=(Math.random()-.5)*cellW*0.5;
+    const jitterY=(Math.random()-.5)*cellH*0.5;
+    const x=cellW*col+cellW*.4+jitterX;
+    const y=cellH*row+cellH*.4+jitterY+8;
+    s.style.cssText=`position:absolute;left:${Math.max(2,Math.min(88,x))}%;top:${Math.max(2,Math.min(88,y))}%;font-size:2.3rem;animation:pop .25s ease both;animation-delay:${i*0.06}s;transform-origin:center;cursor:default;user-select:none`;
     wrap.appendChild(s);
   });
   el.appendChild(wrap);
@@ -979,28 +992,70 @@ function renderYesNo(ex,el){
 // CHECK ANSWER (Lernpsychologie: Growth Mindset + Fehlerkultur)
 // ═══════════════════════════════════════════
 
-// Prozess-Lob statt Person-Lob (Carol Dweck)
-const PRAISE_PROCESS=[
-  'Du hast nicht aufgegeben — das ist toll! 🌟',
-  'Richtig! Du hast genau hingeschaut! 🎉',
-  'Super — du hast es versucht und geschafft! ⭐',
-  'Wunderbar! Du denkst genau nach! 🦉',
-  'Ja! Du hast die richtige Strategie! ✨',
-  'Klasse — du wirst jeden Tag besser! 💪',
-  'Genau! Das konntest du letzte Woche noch nicht! 🌈',
-  'Toll — du hast nicht locker gelassen! 🎊'
+// ── 100 Motivationssätze (Prozess-Lob, Carol Dweck) ──
+const PRAISE=[
+  'Ja! Du hast genau hingeschaut!','Richtig! Du wirst jeden Tag besser!',
+  'Super! Du hast nicht aufgehört zu denken!','Wunderbar! Du hast es rausgefunden!',
+  'Toll! Das konntest du letzte Woche noch nicht!','Perfekt! Du lernst so schnell!',
+  'Ja! Dein Gehirn wächst gerade!','Klasse! Du hast die richtige Strategie!',
+  'Sehr gut! Du hast genau aufgepasst!','Hammer! Du bist heute besser als gestern!',
+  'Top! Du hast nachgedacht und es geschafft!','Bravo! Du gibst nicht auf!',
+  'Wow! Das war nicht einfach aber du hast es!','Stark! Du bist ein Lern-Champion!',
+  'Super gemacht! Jede Aufgabe macht dich klüger!','Ja genau! Du hast es beim ersten Versuch!',
+  'Fantastisch! Du denkst wie ein Forscher!','Ausgezeichnet! Weiter so!',
+  'Mega! Dein Gehirn liebt diese Aufgaben!','Großartig! Du machst mich stolz!',
+  'Das stimmt! Du hast nicht locker gelassen!','Richtig erkannt! Du bist aufmerksam!',
+  'Ja! Genau das ist die Antwort!','Wau! Du lernst wie ein Profi!',
+  'Super! Das war clever gedacht!','Treffer! Du hast genau das richtige gesehen!',
+  'Toll erkannt! Weiter so!','Jawohl! Du wächst mit jeder Aufgabe!',
+  'Genial! Du hast das sofort gewusst!','Prima! Du wirst immer besser!',
+  'Wow, das war schnell! Du hast gut gelernt!','Sehr schön! Dein Einsatz zahlt sich aus!',
+  'Juhu! Eine Aufgabe weniger bis zum Ziel!','Stimmt! Dein Gehirn hat es gewusst!',
+  'Du machst das wirklich gut!','Perfecto! So macht Lernen Spaß!',
+  'Exakt! Du hast nachgedacht und gewonnen!','Richtig! Weiter auf diesem Weg!',
+  'Wunderschön gemacht! So sieht Lernen aus!','Super Arbeit! Du gibst Gas!',
+  'Ja! Das ist die Antwort! Gut aufgepasst!','Hervorragend! Du denkst schnell!',
+  'Spitze! Du bist auf dem richtigen Weg!','Toll! Jede Aufgabe macht dich stärker!',
+  'Wow, du bist heute in Hochform!','Richtig! Du hast super konzentriert!',
+  'Ja! So geht das! Du hast es drauf!','Ausgezeichnet! Dein Einsatz ist toll!',
+  'Super! Dein Gehirn arbeitet auf Hochtouren!','Klasse Arbeit! Weiter geht\'s!',
+  'Genau richtig! Du bist ein Stern!','Fantastisch! Gleich noch eine!',
+  'Ja! Du hast es gewusst!','Gut gemacht! Du zeigst echten Einsatz!',
+  'Wahnsinn! Das war eine tolle Leistung!','Richtig erkannt! Du bist wachsam!',
+  'Super! Du nutzt deinen Kopf richtig!','Toll! Du lernst jeden Tag ein bisschen mehr!',
+  'Ja! Dein Durchhaltevermögen zahlt sich aus!','Mega gut! So wird man zum Profi!',
+  'Richtig! Du hast genau hingeschaut!','Wow! Du hast das wirklich verstanden!',
+  'Ausgezeichnet! Du machst deinen Lernweg!','Ja! Weiter so — du bist auf dem richtigen Kurs!',
+  'Super! Fehler gemacht, gelernt, gewonnen!','Toll erkannt! Du bist ein Naturtalent!',
+  'Ja! Jede richtige Antwort ist ein Schritt vorwärts!','Klasse! Du hast nicht aufgegeben!',
+  'Richtig! Du benutzt deinen Kopf!','Wow! Das ist eine tolle Antwort!',
+  'Ja! Genau so macht man das!','Super! Du hast es auf Anhieb!',
+  'Toll! Du bist heute konzentriert!','Richtig! Lumio ist stolz auf dich!',
+  'Wunderbar! Du lernst wie ein Weltmeister!','Ja! Dein Einsatz macht den Unterschied!',
+  'Klasse! Heute bist du besser als gestern!','Richtig! Das war eine tolle Überlegung!',
+  'Super! Du hast dein Gehirn trainiert!','Wow! So schnell hast du das erkannt!',
+  'Ja! Du hast heute wieder was Neues gelernt!','Toll! Gleich noch eine Aufgabe!',
+  'Richtig erkannt! Weiter auf Kurs!','Super! Jede Aufgabe macht dich schlauer!',
+  'Ja! Das war dein bester Moment heute!','Wunderbar! Du bist ein echter Lernheld!',
+  'Toll! Du hast dir Mühe gegeben!','Richtig! Dein Gehirn hat wieder gewonnen!',
+  'Ja! Du gibst immer dein Bestes!','Super! Lernen macht dich stark!',
+  'Wow! Du hast das perfekt gemacht!','Klasse! Dein Lernweg ist beeindruckend!',
+  'Richtig! Du schaust immer genau hin!','Ja! Heute hast du wieder Fortschritt gemacht!',
+  'Super! Du hast nachgedacht statt geraten!','Toll! Das Lernen lohnt sich!',
+  'Richtig! Du machst das mit Herz!','Ja! Noch eine Aufgabe und du bist noch besser!',
+  'Wow! Du wirst jeden Tag ein bisschen mehr zum Profi!','Super! Gleich geschafft!',
 ];
 
-// Fehlerkultur: neutral, nicht bestrafend (Moser, Nature Neuroscience)
-const ERROR_ENCOURAGE=[
-  'Fast! Schau nochmal genau hin 🔍',
-  'Noch nicht ganz — du schaffst das! 🦉',
-  'Versuch es nochmal — du lernst dabei! 💡',
-  'Gut versucht! Die richtige Antwort war...'
+// Fehler-Ermutigung
+const ERRORS=[
+  'Fast! Schau nochmal genau hin.','Noch nicht ganz. Du schaffst das!',
+  'Nicht aufgeben! Probier es nochmal.','Fast richtig! Dein Gehirn lernt gerade.',
+  'Guter Versuch! Jetzt weißt du es.','Das war mutig! Jetzt kennst du die Antwort.',
+  'Gleich! Du kommst immer näher.','Kein Problem! Fehler machen uns klüger.',
+  'Gut versucht! Beim nächsten Mal schaffst du es!','Fast! Dein Gehirn merkt es sich jetzt.',
 ];
 
-let exStreak=0; // Aufeinanderfolgende Richtige (für adaptive Schwierigkeit)
-let breakCounter=0; // Aufgaben-Zähler für Bewegungspausen
+let exStreak=0,breakCounter=0;
 
 function check(ans,ok,el,grid,sel){
   grid.querySelectorAll(sel).forEach(b=>{b.classList.add('dis');b.onclick=null;});
@@ -1009,34 +1064,35 @@ function check(ans,ok,el,grid,sel){
 
   if(correct){
     curOk++;exStreak++;breakCounter++;
-    // Richtige Antwort vorlesen (das Wort selbst, sauber ohne Emojis)
-    setTimeout(()=>say(ok),200);
-    // Dann kurze Pause, dann prozess-basiertes Lob
-    setTimeout(()=>showFb(true),600);
-    setTimeout(()=>say(PRAISE_PROCESS[Math.floor(Math.random()*PRAISE_PROCESS.length)]),1000);
+    showFb(true);
     if(curOk<=3)document.getElementById('es'+(curOk-1))?.classList.add('lit');
+    // Erst Antwort sprechen, dann wenn fertig das Lob, dann weiter
+    const praise=PRAISE[Math.floor(Math.random()*PRAISE.length)];
+    sayThen(clean(ok),()=>sayThen(praise,()=>{
+      hideFb();
+      const showBreak=breakCounter>0&&breakCounter%10===0;
+      curIdx++;
+      if(curIdx>=curExs.length)finish();
+      else if(showBreak)showMovementBreak();
+      else renderEx();
+    }));
   }else{
     exStreak=0;
     showFb(false);
-    // Richtige Antwort vorlesen + erklären (kein negativer Sound)
-    const errMsg=ERROR_ENCOURAGE[Math.floor(Math.random()*ERROR_ENCOURAGE.length)];
-    setTimeout(()=>say(ok),300); // zuerst die richtige Antwort sprechen
-    setTimeout(()=>say(errMsg),1200);
+    const err=ERRORS[Math.floor(Math.random()*ERRORS.length)];
     grid.querySelectorAll(sel).forEach(b=>{
       if(b.textContent.trim()===ok||b.querySelector('.lb')?.textContent===ok)b.classList.add('ok');
     });
+    // Richtige Antwort sprechen, dann Ermutigung, dann weiter
+    sayThen(clean(ok),()=>sayThen(err,()=>{
+      hideFb();
+      const showBreak=breakCounter>0&&breakCounter%10===0;
+      curIdx++;
+      if(curIdx>=curExs.length)finish();
+      else if(showBreak)showMovementBreak();
+      else renderEx();
+    }));
   }
-
-  // Bewegungspause nach 10-12 Aufgaben (wissenschaftlich belegt für Konzentration)
-  const showBreak=breakCounter>0&&breakCounter%10===0;
-
-  setTimeout(()=>{
-    hideFb();
-    curIdx++;
-    if(curIdx>=curExs.length){finish();}
-    else if(showBreak){showMovementBreak();}
-    else{renderEx();}
-  },correct?1200:2000);
 }
 
 // Bewegungspause (Forschung: Bewegung verbessert Konzentration bei 8-10 Jährigen)
@@ -1135,16 +1191,22 @@ function getBestVoice(){
   return null;
 }
 
-function say(text,rate=0.88){
-  if(!text||!window.speechSynthesis)return;
-  const clean_text=clean(text);
-  if(!clean_text)return;
+// Sprechen und dann Callback (wartet bis fertig — kein Abschneiden!)
+function sayThen(text,cb,rate=0.88){
+  const t=clean(String(text||''));
+  if(!t||!window.speechSynthesis){setTimeout(cb,100);return;}
   speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(clean_text);
+  const u=new SpeechSynthesisUtterance(t);
   u.lang='de-DE';u.rate=rate;u.pitch=1.05;u.volume=1;
-  const v=getBestVoice();
-  if(v)u.voice=v;
+  const v=getBestVoice();if(v)u.voice=v;
+  u.onend=()=>setTimeout(cb,120);
+  u.onerror=()=>setTimeout(cb,100);
   speechSynthesis.speak(u);
+}
+
+// Sprechen ohne Callback (für Fragen etc.)
+function say(text,rate=0.88){
+  sayThen(text,()=>{},rate);
 }
 
 // Stimmen neu laden wenn verfügbar
